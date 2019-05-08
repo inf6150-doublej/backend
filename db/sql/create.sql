@@ -18,9 +18,8 @@ create table Salles (
   description varchar(512),
   pic_id integer,
   reservation_id integer,
-  FOREIGN KEY (reservation_id) REFERENCES Reservations(id)
-  ON DELETE CASCADE
-  ON UPDATE CASCADE
+  FOREIGN KEY (reservation_id) REFERENCES Reservations(id) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (pic_id) REFERENCES Pictures(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 create table Reservations (
@@ -38,16 +37,8 @@ create table Sessions (
   username varchar(32)
 );
 
-create table Accounts (
-  id integer primary key,
-  username varchar(32) UNIQUE,
-  email varchar(32) UNIQUE,
-  token varchar(32),
-  date_sent text
-);
-
 create table Pictures (
-  pic_id varchar(32) primary key,
+  id varchar(32) primary key,
   img_data blob
 );
 

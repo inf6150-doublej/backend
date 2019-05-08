@@ -4,10 +4,10 @@ from db.database import Database
 from binascii import a2b_base64
 
 
-def delete(reservation_id, pic_id):
+def delete(id, pic_id):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
-    cursor.execute("DELETE FROM Salles WHERE reservation_id=?", (reservation_id,))
+    cursor.execute("DELETE FROM Salles WHERE id=?", (id,))
     connexion.commit()
     cursor.execute("DELETE FROM Pictures WHERE pic_id=?", (pic_id,))
     connexion.commit()

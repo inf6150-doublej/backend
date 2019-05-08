@@ -1,16 +1,13 @@
 import sys, os, math, hashlib, uuid, datetime
 sys.path.append(os.path.abspath(os.path.join('..', 'inf6150')))
-from flask import jsonify
-from flask import make_response
-from flask import session
-from flask import request
-from flask import Blueprint
-from src.controllers import salles_controller, users_controller, sessions_controller, accounts_controller
-from src.constants.constants import * 
-from functools import wraps
+from flask import jsonify, make_response, session, request, Blueprint
 from sqlite3 import IntegrityError, Error
+from functools import wraps
+from src.constants.constants import *
+from src.controllers import salles_controller, users_controller, sessions_controller, pictures_controller, reservations_controller
 
 router = Blueprint('router', __name__)
+
 
 def authentication_required(f):
     @wraps(f)
@@ -18,18 +15,15 @@ def authentication_required(f):
         if not is_authenticated(session):
             return send_unauthorized()
         return f(*args, **kwargs)
-
     return decorated
 
 
 def is_authenticated(session):
-    resp = 'id' in session
-    return resp
+    return 'id' in session
 
 
 def send_unauthorized():
-    error = ERR_UNAUTH
-    return make_response(jsonify({'success': False }))
+    return make_response(jsonify({'success': False, 'error': ERR_UNAUTH}))
 
 
 @router.route('/')
@@ -37,16 +31,15 @@ def start():
     return make_response(jsonify({"alo": "salut"}), 200)
 
 
-# @router.route('/image/<pic_id>.jpeg')
-# def download_picture(pic_id):
-#     db = get_db()
-#     binary_data = db.get_pictures_imgdata(pic_id)
-#     if binary_data is None:
-#         return make_response(jsonify({'success', 'ok'}), 200)
-#     else:
-#         response = make_response(binary_data)
-#         response.headers.set('Content-Type', 'image/jpeg')
-#     return response
+@router.route('/image/<pic_id>.jpeg')
+def download_picture(pic_id):
+    binary_data = pictures_controller.select(pic_id)
+    if binary_data is None:
+        return make_response(jsonify({'success': False, 'error': ERR_BLANK})), 204
+    else:
+        response = make_response(binary_data)
+        response.headers.set('Content-Type', 'image/jpeg')
+    return response
 
 
 @router.route('/search', methods=['POST'])
@@ -57,21 +50,8 @@ def get_salles_by_types():
     if request_data_is_invalid(query=query):
         return jsonify({'success': False, 'error': ERR_BLANK}), 204
 
-    if filter == 0:
-        filter = 'all'
-    elif filter == 1:
-        filter = 'dogs'
-    elif filter == 2:
-        filter = 'cats'
-    elif filter == 3:
-        filter = 'other'
-    else:
-        filter = 'all'
-
-    redirect_url = GLOBAL_URL + '/search/' \
-                   + query + '/1' + '?filter=' + filter
-    return jsonify(
-        {'success': True, 'url': redirect_url, 'filter': filter}), 200
+    redirect_url = GLOBAL_URL + '/search/' + query + '/1' + '?filter=' + filter
+    return jsonify({'success': True, 'url': redirect_url, 'filter': filter}), 200
 
 
 @router.route('/search/<query>/<int:page>', methods=['GET'])
@@ -99,47 +79,44 @@ def get_salles_by_page(query, page):
 def get_salle_by_id(salle_id):
     salles = salles_controller.select_by_id(salle_id)
     if salles is None:
-        return make_response(jsonify({'success' : False})), 204
+        return make_response(jsonify({'success': False})), 204
     else:
-        return make_response(jsonify({'success' : True, 'salle' : salles})), 200
+        return make_response(jsonify({'success': True, 'salle': salles})), 200
 
 
 @router.route('/login', methods=['POST', 'GET'])
 def login():
     if request.method == 'POST':
+        print(request.json)
         username = request.json['username']
         password = request.json['password']
 
         # data validation
         if request_data_is_invalid(username=username, password=password):
-            return jsonify({'success': False, 'error': ERR_FORM}), 400
+            return make_response(jsonify({'success': False, 'error': ERR_FORM})), 400
 
         user = users_controller.select_user_hash_by_username(username)
         if user is None:
             redirect_url = GLOBAL_URL + '/login'
-            return jsonify({'success': False, 'url': redirect_url,
-                            'error': ERR_PASSWORD}), 401
+            return make_response(jsonify({'success': False, 'url': redirect_url, 'error': ERR_PASSWORD})), 401
 
         salt = user[0]
-        hashed_password = hashlib.sha512(
-            str(password + salt).encode('utf-8')).hexdigest()
+        hashed_password = hashlib.sha512(str(password + salt).encode('utf-8')).hexdigest()
         if hashed_password == user[1]:
             id_session = uuid.uuid4().hex
-            get_db().save_session(id_session, username)
+            sessions_controller.save(id_session, username)
             session['id'] = id_session
             redirect_url = GLOBAL_URL + '/myaccount'
-            return jsonify({'success': True, 'url': redirect_url}), 200
+            return make_response(jsonify({'success': True, 'url': redirect_url})), 200
         else:
-            redirect_url = GLOBAL_URL +  '/login'
-            return jsonify({'success': False, 'url': redirect_url,
-                            'error': ERR_PASSWORD}), 401
+            redirect_url = GLOBAL_URL + '/login'
+            return make_response(jsonify({'success': False, 'url': redirect_url, 'error': ERR_PASSWORD})), 401
     else:
         return make_response('user_login.html')
 
 
-@router.route('/register', methods=['POST', 'GET'])
+@router.route('/register', methods=['POST'])
 def register():
-    if request.method == 'POST':
         username = request.json['username']
         name = request.json['name']
         family_name = request.json['family_name']
@@ -149,30 +126,21 @@ def register():
         email = request.json['email']
 
         # data validation
-        if request_data_is_invalid(username=username, name=name,
-                                   family_name=family_name, phone=phone,
-                                   address=address, password=password,
-                                   email=email):
-            return jsonify({'success': False, 'error': ERR_FORM}), 400
+        if request_data_is_invalid(username=username, name=name, family_name=family_name, phone=phone, address=address, password=password, email=email):
+            return make_response(jsonify({'success': False, 'error': ERR_FORM})), 400
         else:
             try:
                 salt = uuid.uuid4().hex
-                hashed_password = hashlib.sha512(
-                    str(password + salt).encode('utf-8')).hexdigest()
-                users_controller.create(username, name, family_name, phone,
-                                     address, email, salt, hashed_password)
+                hashed_password = hashlib.sha512(str(password + salt).encode('utf-8')).hexdigest()
+                users_controller.create(username, name, family_name, phone, address, email, salt, hashed_password)
                 id_session = uuid.uuid4().hex
-                get_db().save_session(id_session, username)
+                sessions_controller.save(id_session, username)
                 session['id'] = id_session
                 url = GLOBAL_URL + '/myaccount'
-
                 return jsonify({'success': True, 'url': url}), 201
             # Unique constraint must be respected
             except IntegrityError:
                 return jsonify({'success': False, 'error': ERR_UNI_USER}), 403
-
-    else:
-        return make_response('user_register.html'), 200
 
 
 @router.route('/logout')
@@ -181,8 +149,8 @@ def logout():
     if 'id' in session:
         id_session = session['id']
         session.pop('id', None)
-        get_db().delete_session(id_session)
-    return make_response('/')
+        sessions_controller.delete(id_session)
+    return make_response({'logout': True})
 
 
 def request_data_is_invalid(**kwargs):
@@ -190,26 +158,26 @@ def request_data_is_invalid(**kwargs):
         if value == '':
             return True
     return False
-# @router.route('/mypet', methods=['GET'])
+
+
+# @router.route('/myreservation', methods=['GET'])
 # @authentication_required
-# def mypet():
+# def myreservation():
+#     id = users_controller.select_user_id_by_id_session(session['id'])
+#     salles = reservations_controller.get_salles_by_owner_id(id)
+#     if len(salles) == 0:
+#         return make_response('myreservation.html', error=ERR_NOPOST), 400
+#     else:
+#         return make_response('myreservation.html', id=get_username(), salles=salles), 200
+
+
+# @router.route('/myreservation/update', methods=['GET', 'UPDATE', 'DELETE'])
+# @authentication_required
+# def update_myreservation():
 #     if request.method == 'GET':
 #         id = get_db().get_user_id_by_id_session(session['id'])
 #         salles = get_db().get_salles_by_owner_id(id)
-#         if len(salles) == 0:
-#             return make_response('mypet.html', error=ERR_NOPOST), 400
-#         else:
-#             return make_response('mypet.html', id=get_username(),
-#                                    salles=salles), 200
-
-
-# @router.route('/mypet/update', methods=['GET', 'UPDATE', 'DELETE'])
-# @authentication_required
-# def update_mypet():
-#     if request.method == 'GET':
-#         id = get_db().get_user_id_by_id_session(session['id'])
-#         salles = get_db().get_salles_by_owner_id(id)
-#         return make_response('mypet_update.html', id=get_username(),
+#         return make_response('myreservation_update.html', id=get_username(),
 #                                salles=salles)
 #     elif request.method == 'UPDATE':
 #         # get request data
@@ -241,7 +209,7 @@ def request_data_is_invalid(**kwargs):
 
 #         get_db().update_salle(name, type, race, age, date, description,
 #                                pic_id, user_id)
-#         return_url = GLOBAL_URL + '/mypet'
+#         return_url = GLOBAL_URL + '/myreservation'
 #         return jsonify({'success': True, 'url': return_url}), 201
 
 #     elif request.method == 'DELETE':
@@ -252,101 +220,6 @@ def request_data_is_invalid(**kwargs):
 #             return jsonify({'success': True, 'msg': INFO_DEL}), 201
 #         except Error:
 #             return jsonify({'success': False, 'error': ERR_SERVOR}), 500
-
-
-# def request_data_is_invalid(**kwargs):
-#     for key, value in kwargs.items():
-#         if value == '':
-#             return True
-#     return False
-
-
-# @router.route('/myaccount/', methods=['GET', 'UPDATE'])
-# @authentication_required
-# def get_myaccount():
-#     if request.method == 'GET':
-#         user_info = get_db().get_user_info_by_username(get_username())
-#         if user_info is None:
-#             return make_response('index.html', error=ERR_UNAUTH), 204
-#         else:
-#             return make_response('myaccount.html', id=get_username(),
-#                                    infos=user_info), 200
-#     elif request.method == 'UPDATE':
-#         # get request data
-#         username = request.json['username']
-#         name = request.json['name']
-#         family_name = request.json['family_name']
-#         phone = request.json['phone']
-#         address = request.json['address']
-#         password = request.json['password']
-
-#         if request_data_is_invalid(username=username, name=name,
-#                                    family_name=family_name, phone=phone,
-#                                    address=address,
-#                                    password=password):
-#             return jsonify({'success': False, 'error': ERR_FORM}), 400
-
-#         try:
-#             session_username = get_username()
-#             email = get_db().get_user_email_by_username(get_username())
-
-#             id = get_db().get_user_id_by_id_session(session['id'])
-#             salt = uuid.uuid4().hex
-#             hashed_password = hashlib.sha512(
-#                 str(password + salt).encode('utf-8')).hexdigest()
-
-#             get_db().update_user(id, username, name, family_name, phone,
-#                                  address, email, salt, hashed_password,
-#                                  session_username)
-#             return_url = GLOBAL_URL + '/myaccount'
-#             return jsonify({'success': True, 'url': return_url}), 201
-#         except IntegrityError:
-#             return jsonify({'success': False, 'error': ERR_UNI_USER}), 403
-
-
-# @router.route('/post', methods=['POST', 'GET'])
-# @authentication_required
-# def post():
-#     if request.method == 'POST':
-#         # get request data
-#         name = request.json['name']
-#         type = request.json['type']
-#         race = request.json['race']
-#         age = request.json['age']
-#         date = datetime.datetime.now().strftime('%Y-%m-%d')
-#         description = request.json['description']
-#         img_uri = request.json['img']
-
-#         if request_data_is_invalid(name=name, type=type, race=race,
-#                                    address=age, password=description):
-#             return jsonify({'success': False, 'error': ERR_FORM}), 400
-
-#         # to prevent collision
-#         user_id = get_db().get_user_id_by_id_session(session['id'])
-#         if user_has_already_posted(user_id):
-#             return jsonify({'success': False, 'error': ERR_UNI_POST}), 401
-#         else:
-#             pic_id = get_username()
-#             try:
-#                 get_db().insert_pictures(pic_id, img_uri)
-#                 # img_url = img_path
-
-#                 get_db().insert_salle(name, type, race, age, date,
-#                                        description, pic_id, user_id)
-#                 return_url = GLOBAL_URL + '/mypet'
-#                 return jsonify({'success': True, 'url': return_url}), 201
-#             except Error:
-#                 return jsonify({'success': False, 'error': ERR_SERVOR}), 500
-
-#     elif request.method == 'GET':
-#         return make_response('user_post.html', id=get_username()), 200
-
-
-# def user_has_already_posted(user_id):
-#     salles = get_db().get_salles_by_owner_id(user_id)
-#     if len(salles) > 0:
-#         return True
-#     return False
 
 
 # def save_image_on_disc(**kwargs):
@@ -373,22 +246,6 @@ def request_data_is_invalid(**kwargs):
 #     with open(path, 'wb+') as fh:
 #         fh.write(binary_data)
 #     return path
-
-
-# @router.route('/api/animal_list', methods=['GET'])
-# def api_salle_list():
-#     salles = get_db().get_all_salles()
-#     if salles is None:
-#         return jsonify({'error': 'no salles'}), 204
-#     data = []
-#     for animal in salles:
-#         address = get_db().get_user_adresse_by_salle_id(animal[0])
-#         animal_dict = {'id': animal[0], 'name': animal[1], 'type': animal[2],
-#                        'race': animal[3], 'age': animal[4],
-#                        'date_creation': animal[5], 'description': animal[6],
-#                        'address': address}
-#         data.routerend(animal_dict)
-#     return jsonify(data), 200
 
 
 # @router.route('/password_recovery', methods=['POST', 'GET'])

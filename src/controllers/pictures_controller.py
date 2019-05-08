@@ -6,16 +6,14 @@ from binascii import a2b_base64
 
 def select(pic_id):
     cursor = Database.get_connection().cursor()
-    cursor.execute(
-        ("SELECT img_data FROM Pictures WHERE pic_id=?"), (pic_id,))
+    cursor.execute(("SELECT img_data FROM Pictures WHERE pic_id=?"), (pic_id,))
     picture = cursor.fetchone()
     if picture is None:
-        print('none')
         return None
     else:
         blob_data = picture[0]
-        print('ok')
         return blob_data
+
 
 def insert(pic_id, file_data):
     listed_img_uri = file_data.split(',')
@@ -29,6 +27,7 @@ def insert(pic_id, file_data):
         [pic_id, sqlite3.Binary(binary_data)])
     connection.commit()
 
+
 def update(pic_id, file_data):
     listed_img_uri = file_data.split(',')
     img_base64_tostring = listed_img_uri[1]
@@ -36,8 +35,5 @@ def update(pic_id, file_data):
     # convert string to binary data for writing purpose
     binary_data = a2b_base64(img_base64_tostring)
     connection = Database.get_connection()
-    connection.execute("UPDATE Pictures SET img_data = ? WHERE pic_id = ?",
-                       [sqlite3.Binary(binary_data), pic_id])
+    connection.execute("UPDATE Pictures SET img_data = ? WHERE pic_id = ?", [sqlite3.Binary(binary_data), pic_id])
     connection.commit()
-
-select(1)

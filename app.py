@@ -1,21 +1,15 @@
 # coding: utf8
-import os, sys, sqlite3
+import os, sys, sqlite3, hashlib, uuid, io, datetime, random, math
 sys.path.append(os.path.dirname(__file__))
 from flask import g, Flask, make_response, jsonify
 from flask_mail import Mail, Message
-import hashlib
-import uuid
-import io
-import os.path
-import datetime
-import random
-import math
+from flask_cors import CORS
 from src.routes.routes import router
-
 
 
 app = Flask(__name__)
 app.register_blueprint(router)
+
 
 def config_mail():
     config_list = []
@@ -37,7 +31,7 @@ config_list = config_mail()
 mail_default_sender = config_list[0]
 mail_username = config_list[0]
 mail_password = config_list[1]
-# cors = CORS(app)
+cors = CORS(app)
 app.config.update(
     DEBUG=True,
     MAIL_SERVER='smtp.gmail.com',
@@ -49,14 +43,6 @@ app.config.update(
 )
 mail = Mail(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
-
-
-# def get_db():
-#     with app.app_context():
-#         db = getattr(g, '_database', None)
-#         if db is None:
-#             g._database = Database()
-#         return g._database
 
 
 @app.teardown_appcontext

@@ -1,16 +1,9 @@
 import os, sys
 sys.path.append(os.path.abspath(os.path.join('..', '..', '..', 'inf6150')))
 from db.database import Database
-# from app import select_db
 
 
-# def select_username():
-#     if 'id' in session:
-#         return select_db().select_session_username_by_id_session(session['id'])
-#     return None
-
-
-def insert(username, name, family_name, phone, address, email, salt, hashed_password):
+def create(username, name, family_name, phone, address, email, salt, hashed_password):
     connection = Database.get_connection()
     connection.execute((
         "INSERT INTO Users(username, name, family_name, "
@@ -18,6 +11,13 @@ def insert(username, name, family_name, phone, address, email, salt, hashed_pass
         " VALUES(?, ?, ?, ?, ?, ?, ?, ?)"),
         (username, name, family_name, phone, address, email, salt, hashed_password))
     connection.commit()
+
+
+def delete(username):
+    connection = Database.get_connection()
+    connection.execute("DELETE FROM Users WHERE username=?", (username,))
+    connection.commit()
+
 
 def update(id, username, name, family_name, phone, address, email, salt, hash, session_username):
     connection = Database.get_connection()
@@ -36,6 +36,7 @@ def update(id, username, name, family_name, phone, address, email, salt, hash, s
                             (username, session_username,))
         connection.commit()
 
+
 def select_user_id_by_email(email):
     cursor = Database.get_connection().cursor()
     cursor.execute('SELECT id FROM Users WHERE username=?', (email,))
@@ -44,6 +45,7 @@ def select_user_id_by_email(email):
         return None
     else:
         return user[0]
+
 
 def select_user_hash_by_username(username):
     cursor = Database.get_connection().cursor()
@@ -54,6 +56,7 @@ def select_user_hash_by_username(username):
     else:
         return user[0], user[1]
 
+
 def select_user_info_by_username(username):
     cursor = Database.get_connection().cursor()
     cursor.execute('SELECT * FROM Users WHERE username=?', (username,))
@@ -61,8 +64,8 @@ def select_user_info_by_username(username):
     if user is None:
         return None
     else:
-        return user[0], user[1], user[2], user[3], user[4], user[5], user[
-            6]
+        return user[0], user[1], user[2], user[3], user[4], user[5], user[6]
+
 
 def select_user_username_by_email(email):
     cursor = Database.get_connection().cursor()
@@ -73,14 +76,6 @@ def select_user_username_by_email(email):
     else:
         return user[0]
 
-def select_user_email_by_salle_id(salle_id):
-    cursor = Database.get_connection().cursor()
-    cursor.execute(
-        'SELECT email FROM Users u JOIN Salles a ON u.id = a.owner_id '
-        'WHERE a.id=?',
-        (salle_id,))
-    email = cursor.fetchone()
-    return email[0]
 
 def select_user_email_by_username(username):
     cursor = Database.get_connection().cursor()
@@ -88,6 +83,7 @@ def select_user_email_by_username(username):
                     (username,))
     email = cursor.fetchone()
     return email[0]
+
 
 def select_user_id_by_id_session(id_session):
     cursor = Database.get_connection().cursor()
@@ -101,17 +97,6 @@ def select_user_id_by_id_session(id_session):
     else:
         return data[0]
 
-def select_user_adresse_by_salle_id(salle_id):
-    cursor = Database.get_connection().cursor()
-    cursor.execute('SELECT u.address '
-                    'FROM Salles a JOIN Users u '
-                    'ON u.id = a.owner_id '
-                    'WHERE a.id=?', (salle_id,))
-    data = cursor.fetchone()
-    if data is None:
-        return None
-    else:
-        return data[0]
 
 def select_all():
     connection = Database.get_connection()
@@ -119,10 +104,10 @@ def select_all():
     cursor.execute('SELECT * FROM Users')
     return cursor.fetchall()
 
+
 def update_password(id, salt, hash):
     connection = Database.get_connection()
-    connection.execute('UPDATE Users SET salt=?, hash=? WHERE id=?',
-                        (salt, hash, id,))
+    connection.execute('UPDATE Users SET salt=?, hash=? WHERE id=?', (salt, hash, id,))
     connection.commit()
 
    

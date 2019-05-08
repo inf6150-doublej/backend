@@ -2,7 +2,7 @@
 * on prend en consideration que python3 et pip sont déjà installés
 
 ##Dépandences
-* Un fichier requierements.txt est disponible dans le répertoire [~/project_root/requierements.txt](requirements.txt)
+* Un fichier requirements.txt est disponible dans le répertoire [~/project_root/requierements.txt](requirements.txt)
 * Sans environnement virtuel, l'instalation se fera au niveau root de python
 * Pour isoler l'instalation des dépandences, il est possible de créer un environnement virtuel:
 ```bash
@@ -36,9 +36,9 @@ $ workon tp2
 * Pour exécuter tous les scripts, entrer dans le terminal :
 ```bash
 ~/project_root/db $ sqlite3 db.db
-~/project_root/db $ .read create.sql
-~/project_root/db $ .read insert.sql
-~/project_root/db $ .read drop.sql
+~/project_root/db $ .read sql/create.sql
+~/project_root/db $ .read sql/insert.sql
+~/project_root/db $ .read sql/drop.sql
 ~/project_root/db $ .quit
 ```
 
@@ -61,10 +61,6 @@ $ workon tp2
 ```bash
 $ pip install flask_mail
 ```
-
-## API Documentation
-
-La documentation de l'api Kajaja est disponible dans le répertoire  [~/project_root/kajajaApiDocs/README.md](kajajaApiDocs/README.md)
 
 ### RUN APP
 * Pour exécuter l'application à partir du terminal flask_script doit être installer.
