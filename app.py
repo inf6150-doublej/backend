@@ -1,5 +1,6 @@
 # coding: utf8
 import os, sys, sqlite3
+sys.path.append(os.path.dirname(__file__))
 from flask import g, Flask, make_response, jsonify
 from flask_mail import Mail, Message
 import hashlib
@@ -9,8 +10,8 @@ import os.path
 import datetime
 import random
 import math
-from inf6150.src.routes.routes import router
-# from inf6150.db.database import Database
+from src.routes.routes import router
+
 
 
 app = Flask(__name__)
