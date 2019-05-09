@@ -1,5 +1,6 @@
 *.pyc
 .vscode/
+.idea/
 makefile
 __pycache__
 *.code-workspace
@@ -7,3 +8,5 @@ node_modules/
 *.env
 .eslintignore
 .eslintrc.json
+client
+

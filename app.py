@@ -31,7 +31,8 @@ config_list = config_mail()
 mail_default_sender = config_list[0]
 mail_username = config_list[0]
 mail_password = config_list[1]
-cors = CORS(app)
+CORS(app)
+CORS(router)
 app.config.update(
     DEBUG=True,
     MAIL_SERVER='smtp.gmail.com',
@@ -42,7 +43,7 @@ app.config.update(
     MAIL_PASSWORD=mail_password
 )
 mail = Mail(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
+# app.config['CORS_HEADERS'] = 'Content-Type'
 
 
 @app.teardown_appcontext
