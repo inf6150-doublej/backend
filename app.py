@@ -55,6 +55,7 @@ config = {
   'SECRET_KEY': '...'
 }
 CORS(app, supports_credentials=True)
+print(app.config)
 
 @app.teardown_appcontext
 def close_connection(exception):
@@ -143,15 +144,14 @@ def login():
 
     user = user_controller.select_user_hash_by_email(email)
     if user is None:
-        redirect_url = GLOBAL_URL + '/login'
-        return make_response(jsonify({'success': False, 'url': redirect_url, 'error': ERR_PASSWORD})), 401
+        return make_response(jsonify({'success': False, 'error': ERR_PASSWORD})), 401
 
     salt = user[0]
     hashed_password = hashlib.sha512(
         str(password + salt).encode('utf-8')).hexdigest()
     if hashed_password == user[1]:
         id_session = uuid.uuid4().hex
-        session_controller.save(id_session, email)
+        session_controller.save(id_session)
         session['id'] = id_session
         return make_response(jsonify({'success': True })), 200
     else:
