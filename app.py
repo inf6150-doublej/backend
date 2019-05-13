@@ -45,7 +45,7 @@ app.config.update(
     MAIL_PASSWORD=mail_password
 )
 mail = Mail(app)
-# app.config['CORS_HEADERS'] = 'Content-Type'
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 
 @app.teardown_appcontext
