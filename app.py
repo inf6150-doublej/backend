@@ -54,7 +54,7 @@ config = {
 
   'SECRET_KEY': '...'
 }
-CORS(app, resources={ r'/*': {'origins': config['ORIGINS']}}, supports_credentials=True)
+CORS(app, supports_credentials=True)
 
 @app.teardown_appcontext
 def close_connection(exception):
