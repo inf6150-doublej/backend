@@ -1,12 +1,12 @@
 import os, sys
-sys.path.append(os.path.abspath(os.path.join('..', '..', '..', 'inf6150')))
+sys.path.append(os.path.abspath(os.path.join('..', '..', '..', 'backend')))
 from db.database import Database
 
 
-def create(username, name, family_name, phone, address, email, salt, hashed_password):
+def create(username, email, name, family_name, phone, address, salt, hashed_password):
     connection = Database.get_connection()
     connection.execute((
-        "INSERT INTO Users(username, name, family_name, "
+        "INSERT INTO User(username, name, family_name, "
         "phone, address, email, salt, hash)"
         " VALUES(?, ?, ?, ?, ?, ?, ?, ?)"),
         (username, name, family_name, phone, address, email, salt, hashed_password))
@@ -15,13 +15,13 @@ def create(username, name, family_name, phone, address, email, salt, hashed_pass
 
 def delete(username):
     connection = Database.get_connection()
-    connection.execute("DELETE FROM Users WHERE username=?", (username,))
+    connection.execute("DELETE FROM User WHERE username=?", (username,))
     connection.commit()
 
 
-def update(id, username, name, family_name, phone, address, email, salt, hash, session_username):
+def update(id, username, email, name, family_name, phone, address, salt, hash, session_username):
     connection = Database.get_connection()
-    connection.execute('UPDATE Users '
+    connection.execute('UPDATE User '
                         'SET username=?, name=?, family_name=?, phone=?, '
                         'address=?, email=?, salt=?, hash=? '
                         'WHERE id=?',
@@ -39,7 +39,7 @@ def update(id, username, name, family_name, phone, address, email, salt, hash, s
 
 def select_user_id_by_email(email):
     cursor = Database.get_connection().cursor()
-    cursor.execute('SELECT id FROM Users WHERE username=?', (email,))
+    cursor.execute('SELECT id FROM User WHERE username=?', (email,))
     user = cursor.fetchone()
     if user is None:
         return None
@@ -47,9 +47,9 @@ def select_user_id_by_email(email):
         return user[0]
 
 
-def select_user_hash_by_username(username):
+def select_user_hash_by_email(email):
     cursor = Database.get_connection().cursor()
-    cursor.execute('SELECT salt, hash FROM Users WHERE username=?', (username,))
+    cursor.execute('SELECT salt, hash FROM User WHERE email=?', (email,))
     user = cursor.fetchone()
     if user is None:
         return None
@@ -59,7 +59,7 @@ def select_user_hash_by_username(username):
 
 def select_user_info_by_username(username):
     cursor = Database.get_connection().cursor()
-    cursor.execute('SELECT * FROM Users WHERE username=?', (username,))
+    cursor.execute('SELECT * FROM User WHERE username=?', (username,))
     user = cursor.fetchone()
     if user is None:
         return None
@@ -69,7 +69,7 @@ def select_user_info_by_username(username):
 
 def select_user_username_by_email(email):
     cursor = Database.get_connection().cursor()
-    cursor.execute('SELECT username FROM Users WHERE email=?', (email,))
+    cursor.execute('SELECT username FROM User WHERE email=?', (email,))
     user = cursor.fetchone()
     if user is None:
         return None
@@ -79,7 +79,7 @@ def select_user_username_by_email(email):
 
 def select_user_email_by_username(username):
     cursor = Database.get_connection().cursor()
-    cursor.execute('SELECT email FROM Users u WHERE u.username=?',
+    cursor.execute('SELECT email FROM User u WHERE u.username=?',
                     (username,))
     email = cursor.fetchone()
     return email[0]
@@ -88,7 +88,7 @@ def select_user_email_by_username(username):
 def select_user_id_by_id_session(id_session):
     cursor = Database.get_connection().cursor()
     cursor.execute('SELECT DISTINCT  u.id '
-                    'FROM sessions s JOIN Users u '
+                    'FROM sessions s JOIN User u '
                     'ON s.username = u.username '
                     'WHERE id_session=?', (id_session,))
     data = cursor.fetchone()
@@ -101,13 +101,12 @@ def select_user_id_by_id_session(id_session):
 def select_all():
     connection = Database.get_connection()
     cursor = connection.cursor()
-    cursor.execute('SELECT * FROM Users')
+    cursor.execute('SELECT * FROM User')
     return cursor.fetchall()
 
 
 def update_password(id, salt, hash):
     connection = Database.get_connection()
-    connection.execute('UPDATE Users SET salt=?, hash=? WHERE id=?', (salt, hash, id,))
+    connection.execute('UPDATE User SET salt=?, hash=? WHERE id=?', (salt, hash, id,))
     connection.commit()
-
-   
+  

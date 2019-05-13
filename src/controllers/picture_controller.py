@@ -1,12 +1,11 @@
 import os, sys, sqlite3
-sys.path.append(os.path.abspath(os.path.join('..', '..', '..', 'inf6150')))
+sys.path.append(os.path.abspath(os.path.join('..', 'backend')))
 from db.database import Database
-# from app import get_db
 from binascii import a2b_base64
 
 def select(pic_id):
     cursor = Database.get_connection().cursor()
-    cursor.execute(("SELECT img_data FROM Pictures WHERE pic_id=?"), (pic_id,))
+    cursor.execute(("SELECT img_data FROM Picture WHERE pic_id=?"), (pic_id,))
     picture = cursor.fetchone()
     if picture is None:
         return None
@@ -23,7 +22,7 @@ def insert(pic_id, file_data):
     binary_data = a2b_base64(img_base64_tostring)
     connection = Database.get_connection()
     connection.execute(
-        "INSERT INTO Pictures(pic_id, img_data) VALUES(?, ?)",
+        "INSERT INTO Picture(pic_id, img_data) VALUES(?, ?)",
         [pic_id, sqlite3.Binary(binary_data)])
     connection.commit()
 
@@ -35,5 +34,5 @@ def update(pic_id, file_data):
     # convert string to binary data for writing purpose
     binary_data = a2b_base64(img_base64_tostring)
     connection = Database.get_connection()
-    connection.execute("UPDATE Pictures SET img_data = ? WHERE pic_id = ?", [sqlite3.Binary(binary_data), pic_id])
+    connection.execute("UPDATE Picture SET img_data = ? WHERE pic_id = ?", [sqlite3.Binary(binary_data), pic_id])
     connection.commit()

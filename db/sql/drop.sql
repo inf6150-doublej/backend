@@ -1,6 +1,5 @@
-drop table Salles;
-drop table Users;
-DROP TABLE Sessions;
-DROP TABLE Accounts;
-DROP TABLE Pictures;
-DROP TABLE Reservations;
+drop table Room;
+drop table User;
+DROP TABLE Session;
+DROP TABLE Picture;
+DROP TABLE Reservation;

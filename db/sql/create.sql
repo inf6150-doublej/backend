@@ -1,46 +1,51 @@
-create table Users (
+create table User (
   id integer primary key,
   username varchar(32) UNIQUE,
+  email varchar(32) UNIQUE,
   name varchar(32),
   family_name varchar(32),
   phone varchar(32),
   address varchar(128),
-  email varchar(32) UNIQUE,
   salt varchar(32),
-  hash varchar(128)
+  hash varchar(128),
+  admin boolean
 );
 
-create table Salles (
+create table Room (
   id integer primary key,
   name varchar(64),
   type integer,
   capacity integer,
   description varchar(512),
-  pic_id integer,
   reservation_id integer,
-  FOREIGN KEY (reservation_id) REFERENCES Reservations(id) ON DELETE CASCADE ON UPDATE CASCADE
-  FOREIGN KEY (pic_id) REFERENCES Pictures(id) ON DELETE CASCADE ON UPDATE CASCADE
+  equipment_id integer,
+  FOREIGN KEY (reservation_id) REFERENCES Reservation(id) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (equipment_id) REFERENCES Equipment(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-create table Reservations (
+create table Reservation (
   id integer primary key,
   user_id integer,
-  salle_id integer,
-  date_creation date,
-  FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE
-  FOREIGN KEY (salle_id) REFERENCES Salles(id) ON DELETE CASCADE ON UPDATE CASCADE
+  room_id integer,
+  date_begin date,
+  date_end date,
+  FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (room_id) REFERENCES Room(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-create table Sessions (
+
+create table Session (
   id integer primary key,
-  id_session varchar(32),
-  username varchar(32)
+  id_session varchar(32)
 );
 
-create table Pictures (
+
+create table Equipment (
   id varchar(32) primary key,
-  img_data blob
+  computer boolean,
+  white_board boolean,
+  sound_system boolean,
+  projector boolean
 );
-
 
 

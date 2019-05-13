@@ -11,15 +11,12 @@ ERR_SERVOR = "La transaction n'a pas été effectuée"
 ERR_NOPOST = "Vous n'avez pas d'annonce affichée"
 ERR_404 = "Cette page n'existe pas"
 
-INFO_DEL = "Votre annonce a été supprimée"
-INFO_MSG_SENT_ADOPTION = "Un email a été envoyé au propriétaire."\
-                         " Souvenez-vous ! " \
-                         "Adopter un animal est un contract à vie."
-INFO_MSG_SENT_RECOVERY = "Récupérer votre mot de passe" \
+MSG_DEL = "Votre annonce a été supprimée"
+MSG_MAIL_SENT_RECOVERY = "Récupérer votre mot de passe" \
                          " dans votre boite à courriels"
-INFO_MAIL_SUBJECT = "Quelqu'un est interressé  à adopter votre animal," \
-                    " contacter >>  "
-INFO_MAIL_RECOVER_SUBJECT = "Récupérer votre mot de passe"
-INFO_MAIL_RECOVER_BODY = "Suivez ce lien " \
-                         "http://localhost:5000/password_recovery/validate " \
+MSG_MAIL_RECOVER_SUBJECT = "Récupérer votre mot de passe"
+MSG_MAIL_RECOVER_BODY = "Suivez ce lien " \
+                         "http://localhost:5000/password_recovery/validate" \
                          "et connectez-vous avec ce mot de passe : "
+MSG_MAIL_REGISTER_SUCCESS_SUBJECT = "You have succesfully registered to BookingExpert. "
+MSG_MAIL_REGISTER_SUCCESS_BODY = "Thank you very much. Feel free to ask any question."                           
