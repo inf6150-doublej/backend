@@ -46,7 +46,15 @@ app.config.update(
 )
 mail = Mail(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+config = {
+  'ORIGINS': [
+    'http://localhost:3000',  # React
+    'https://doublej-frontend.herokuapp.com',  # React
+  ],
 
+  'SECRET_KEY': '...'
+}
+CORS(app, resources={ r'/*': {'origins': config['ORIGINS']}}, supports_credentials=True)
 
 @app.teardown_appcontext
 def close_connection(exception):
