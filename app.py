@@ -250,6 +250,13 @@ def generate_token():
     return new_password
 
 
+@app.route('/admin/users/delete/<int:id>', methods=['GET'])
+def admin_delete_user(id):
+    user_controller.delete(id)
+    return make_response(jsonify({'success': True, 'id': id}))
+
+
+
 # @app.route('/password_recovery/validate', methods=['POST'])
 # def password_recovery_validate():
 #     username = request.json['username']

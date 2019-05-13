@@ -13,9 +13,9 @@ def create(username, email, name, family_name, phone, address, salt, hashed_pass
     connection.commit()
 
 
-def delete(username):
+def delete(id):
     connection = Database.get_connection()
-    connection.execute("DELETE FROM User WHERE username=?", (username,))
+    connection.execute("DELETE FROM User WHERE id=?", (id,))
     connection.commit()
 
 
