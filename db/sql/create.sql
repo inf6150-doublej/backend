@@ -52,4 +52,3 @@ create table Equipment (
   FOREIGN KEY (room_id) REFERENCES Room(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-
