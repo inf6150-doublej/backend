@@ -1,7 +1,7 @@
 create table User (
   id integer primary key,
   username varchar(32) UNIQUE,
-  email varchar(32) UNIQUE,
+  email varchar(64) UNIQUE,
   name varchar(32),
   family_name varchar(32),
   phone varchar(32),
