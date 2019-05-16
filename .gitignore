@@ -9,4 +9,5 @@ node_modules/
 .eslintignore
 .eslintrc.json
 client
+env/
 
