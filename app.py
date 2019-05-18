@@ -49,7 +49,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 config = {
   'ORIGINS': [
     'http://localhost:3000',  # React
-    'https://doublej-frontend.herokuapp.com',  # React
+    'https://bookingexpert.herokuapp.com',  # React
   ],
 
   'SECRET_KEY': '...'
