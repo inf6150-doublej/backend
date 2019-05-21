@@ -49,7 +49,8 @@ def select_all():
     connection = Database.get_connection()
     cursor = connection.cursor()
     cursor.execute('SELECT * FROM User')
-    return cursor.fetchall()
+    users = to_list_of_dict(cursor.fetchall())
+    return users
 
 
 def update_password(id, salt, hash):
