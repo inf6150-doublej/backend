@@ -16,6 +16,7 @@ insert into User (id, username, email, name, family_name, phone, address, salt, 
 insert into User (id, username, email, name, family_name, phone, address, salt, hash) values (14,'gloria', 'test14@test.com','gloria', 'guite14', '450-444-4414', '1214 rue test','cbf02b048d1649deb5b9a381f15b7a3d', 'a3b61ddd36e5c2b041dcea14039710d1e5a5cac8694b2b20f6a320259566cfcb4d8ce5217135cf227a96f2d57d7eebd2e12d10a6f2963d88e8ac2c5c63568f0d');
 insert into User (id, username, email, name, family_name, phone, address, salt, hash) values (15,'marc', 'test15@test.com','marc', 'guite15', '450-444-4415', '1215 rue test','cbf02b048d1649deb5b9a381f15b7a3d', 'a3b61ddd36e5c2b041dcea14039710d1e5a5cac8694b2b20f6a320259566cfcb4d8ce5217135cf227a96f2d57d7eebd2e12d10a6f2963d88e8ac2c5c63568f0d');
 insert into User (id, username, email, name, family_name, phone, address, salt, hash) values (16,'david', 'test16@test.com','david', 'guite16', '450-444-4416', '1216 rue test','cbf02b048d1649deb5b9a381f15b7a3d', 'a3b61ddd36e5c2b041dcea14039710d1e5a5cac8694b2b20f6a320259566cfcb4d8ce5217135cf227a96f2d57d7eebd2e12d10a6f2963d88e8ac2c5c63568f0d');
+insert into User (id, username, email, name, family_name, phone, address, salt, hash, admin) values (17,'admin', 'admin','david', 'guite16', '450-444-4416', '1216 rue test','cbf02b048d1649deb5b9a381f15b7a3d', 'a3b61ddd36e5c2b041dcea14039710d1e5a5cac8694b2b20f6a320259566cfcb4d8ce5217135cf227a96f2d57d7eebd2e12d10a6f2963d88e8ac2c5c63568f0d', 1);
 
 --type de room
 -- 1 arena 2 auditorium 3 bar 4 universite 5 theatre 6 centre culturel 7 maison 8 exterieur
