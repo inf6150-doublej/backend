@@ -57,3 +57,16 @@ def update_password(id, salt, hash):
     connection = Database.get_connection()
     connection.execute('UPDATE User SET salt=?, hash=? WHERE id=?', (salt, hash, id,))
     connection.commit()
+
+
+def to_list_of_dict(users):
+    room_list = []
+    for row in users:
+        room_list.append(to_dict(row))
+    return room_list
+
+
+def to_dict(row):
+    return {"id": row[0], "username": row[1], "email": row[2],
+            "name": row[3], "family_name": row[4],
+            "phone": row[5], "address": row[6], "admin": row[7], }
