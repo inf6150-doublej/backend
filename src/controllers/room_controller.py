@@ -76,8 +76,8 @@ def select_by_reservation_id(reservation_id):
 
 def room_to_list_of_dict(room):
     room_list = []
-    for row in room:
-        room_list.append(Database.get_connection().to_dict(row))
+    for row in rooms:
+        room_list.append(to_dict(row))
     return room_list
 
 

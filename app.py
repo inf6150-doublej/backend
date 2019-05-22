@@ -1,15 +1,14 @@
 # coding: utf8
 import os, sys, sqlite3, hashlib, uuid, io, datetime, random, math
 sys.path.append(os.path.dirname(__file__))
-# print(sys.path)
-from src.controllers import room_controller, user_controller, session_controller, reservation_controller
-from src.constants.constants import *
-from functools import wraps
 from sqlite3 import IntegrityError, Error
+from functools import wraps
 from smtplib import SMTPException
 from flask import g, Flask, make_response, jsonify, session, request
 from flask_mail import Mail, Message
 from flask_cors import CORS
+from src.controllers import room_controller, user_controller, session_controller, reservation_controller
+from src.constants.constants import *
 
 
 app = Flask(__name__)
@@ -55,7 +54,7 @@ config = {
   'SECRET_KEY': '...'
 }
 CORS(app, supports_credentials=True)
-print(app.config)
+#TODO white list in CORS
 
 @app.teardown_appcontext
 def close_connection(exception):
@@ -65,7 +64,7 @@ def close_connection(exception):
 
 
 @app.errorhandler(404)
-def page_not_found(e):
+def page_not_found():
     return make_response(jsonify({'success': False}), 404)
 
 
@@ -78,6 +77,20 @@ def authentication_required(f):
     return decorated
 
 
+def admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not is_admin(session):
+            return send_unauthorized()
+        return f(*args, **kwargs)
+    return decorated    
+
+
+def is_admin(session):
+    admin = session_controller.select_user_by_session_id(session['id'])
+    if admin is None : return False
+    return True
+
 def is_authenticated(session):
     return 'id' in session
 
@@ -86,42 +99,43 @@ def send_unauthorized():
     return make_response(jsonify({'success': False, 'error': ERR_UNAUTH}))
 
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def start():
     return make_response(jsonify({"alo": "salut"}), 200)
 
 
+@app.route('/getuser', methods=['POST'])
+def get_user():
+    user = session_controller.select_user_by_session_id(session['id'])
+    return make_response(jsonify({"user": user}), 200)
+
+
 @app.route('/search', methods=['POST'])
-def get_rooms_by_types():
-    query = request.json['query']
-    filter = int(request.json['filter'])
-
-    if request_data_is_invalid(query=query):
-        return jsonify({'success': False, 'error': ERR_BLANK}), 204
-
-    redirect_url = GLOBAL_URL + '/search/' + query + '/1' + '?filter=' + filter
-    return jsonify({'success': True, 'url': redirect_url, 'filter': filter}), 200
+def search_room():
+    data = request.json['data']
+    if request_data_is_invalid(query=data):
+        return make_response(jsonify({'success': False, 'error': ERR_BLANK})), 204
+    rooms = room_controller.select_all()
+    return make_response(jsonify({'rooms': rooms})), 200
 
 
-@app.route('/search/<query>/<int:page>', methods=['GET'])
-def get_rooms_by_page(query, page):
-    filter = request.args.get('filter')
-    data = room_controller.select_by_type(filter)
-
-    # TODO optimize to not fetch all data
-    nb_page = math.ceil(len(data) / 5)
-    # page number verification
-    if page > nb_page:
-        page = nb_page
-    elif page < 1:
-        page = 1
-
-    # 5 images per page
-    end = page * 5
-    start = end - 5
-    rooms = data[start:end]
-
-    return True
+@app.route('/reservation', methods=['POST'])
+def reservation():
+    data = request.json['data']
+    room = data['room']
+    user = data['user']
+    begin = data['begin']
+    end = data['end']
+    begin = begin[:24]
+    end = end[:24]
+    begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
+    end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
+    user_id = int(user['id'])
+    room_id = int(room[0])
+    if request_data_is_invalid(query=data):
+        return make_response(jsonify({'success': False, 'error': ERR_BLANK})), 204
+    reservation_controller.save(user_id, room_id, begin, end)
+    return make_response(jsonify({'succes':True })), 201
 
 
 @app.route('/rooms/<int:room_id>', methods=['GET'])
@@ -130,7 +144,7 @@ def get_room_by_id(room_id):
     if rooms is None:
         return make_response(jsonify({'success': False})), 204
     else:
-        return make_response(jsonify({'success': True, 'room': rooms})), 200
+        return make_response(jsonify({'success': True, 'rooms': rooms})), 200
 
 
 @app.route('/login', methods=['POST'])
@@ -143,6 +157,7 @@ def login():
         return make_response(jsonify({'success': False, 'error': ERR_FORM})), 400
 
     user = user_controller.select_user_hash_by_email(email)
+    print(user)
     if user is None:
         return make_response(jsonify({'success': False, 'error': ERR_PASSWORD})), 401
 
@@ -151,9 +166,9 @@ def login():
         str(password + salt).encode('utf-8')).hexdigest()
     if hashed_password == user[1]:
         id_session = uuid.uuid4().hex
-        session_controller.save(id_session)
+        session_controller.save(id_session, email)
         session['id'] = id_session
-        return make_response(jsonify({'success': True })), 200
+        return make_response(jsonify({'success': True})), 200
     else:
         return make_response(jsonify({'success': False, 'error': ERR_PASSWORD})), 401
 
@@ -179,7 +194,7 @@ def register():
             user_controller.create(
                 username, email, name, last_name, phone, address, salt, hashed_password)
             id_session = uuid.uuid4().hex
-            session_controller.save(id_session)
+            session_controller.save(id_session, email)
             session['id'] = id_session
             send_email(email, MSG_MAIL_REGISTER_SUCCESS_SUBJECT, MSG_MAIL_REGISTER_SUCCESS_BODY)
             return jsonify({'success': True }), 201
@@ -188,18 +203,18 @@ def register():
             return jsonify({'success': False, 'error': ERR_UNI_USER}), 403
 
 
-@app.route('/logout')
+@app.route('/logout', methods=['POST'])
 @authentication_required
 def logout():
     if 'id' in session:
         id_session = session['id']
         session.pop('id', None)
         session_controller.delete(id_session)
-    return make_response({'logout': True})
+    return make_response(jsonify({'success': True})), 200
 
 
 def request_data_is_invalid(**kwargs):
-    for key, value in kwargs.items():
+    for value in kwargs.items():
         if value == '':
             return True
     return False
@@ -207,20 +222,19 @@ def request_data_is_invalid(**kwargs):
 
 @app.route('/password_recovery', methods=['POST'])
 def password_recovery():
-    smtp_response_ok = send_recovery_email()
+    smtp_response_ok = send_recovery_email(request.json['email'])
     if smtp_response_ok:
         return jsonify({'success': True, 'msg': MSG_MAIL_SENT_RECOVERY}), 200
     else:
         return jsonify({'success': False, 'error': ERR_SERVOR}), 500
 
 
-def send_recovery_email():
-    user_email = request.json['email']
-    username = user_controller.get_user_username_by_email(user_email)
-    if username:
+def send_recovery_email(user_email):
+    user = user_controller.select_user_info_by_email(user_email)
+    if user:
         token = generate_token()
         date = datetime.datetime.now().strftime('%Y-%m-%d')
-        user_controller.create(username, user_email, token, date)
+        user_controller.update_password(user, user_email, token, date)
         subject = MSG_MAIL_RECOVER_SUBJECT
         msg = Message(subject, recipients=[user_email])
         msg.body = MSG_MAIL_RECOVER_BODY + token
@@ -250,44 +264,49 @@ def generate_token():
     return new_password
 
 
-@app.route('/admin/users/delete/<int:id>', methods=['GET'])
+@app.route('/admin/users/<int:id>', methods=['DELETE'])
 def admin_delete_user(id):
     user_controller.delete(id)
-    return make_response(jsonify({'success': True, 'id': id}))
+    return make_response(jsonify({'success': True, 'id': id})), 201
 
 
+@app.route('/admin/users', methods=['POST', 'GET'])
+def admin_select_all_users():
+    users = user_controller.select_all()
+    return make_response(jsonify({'users':users})), 200
 
-# @app.route('/password_recovery/validate', methods=['POST'])
-# def password_recovery_validate():
-#     username = request.json['username']
-#     password = request.json['password']
-#     token = Database.get_connection().get_account_token_by_username(username)
-#     if token is None:
-#         redirect_url = GLOBAL_URL + '/password_recovery/validate'
-#         return jsonify({'success': False, 'url': redirect_url,
-#                         'error': ERR_PASSWORD}), 401
 
-#     if password == token:
-#         # update user
-#         infos = user_controller.get_user_info_by_username(username)
-#         user_id = infos[0]
-#         salt = uuid.uuid4().hex
-#         hashed_password = hashlib.sha512(
-#             str(token + salt).encode('utf-8')).hexdigest()
-#         user_controller.update_user_password(user_id, salt, hashed_password)
-#         # delete account
-#         user_controller.delete_account_by_username(username)
-#         # update session
-#         id_session = uuid.uuid4().hex
-#         session_controller.save_session(id_session, username)
-#         session['id'] = id_session
-#         redirect_url = GLOBAL_URL + '/myaccount'
-#         return jsonify({'success': True, 'url': redirect_url}), 201
-#     else:
-#         redirect_url = GLOBAL_URL + '/password_recovery/validate'
-#         return jsonify({'success': False,
-#                         'url': redirect_url,
-#                         'error': ERR_PASSWORD}), 401
+@app.route('/password_recovery/validate', methods=['POST'])
+def password_recovery_validate():
+    username = request.json['username']
+    password = request.json['password']
+    token = Database.get_connection().get_account_token_by_username(username)
+    if token is None:
+        redirect_url = GLOBAL_URL + '/password_recovery/validate'
+        return jsonify({'success': False, 'url': redirect_url,
+                        'error': ERR_PASSWORD}), 401
+
+    if password == token:
+        # update user
+        infos = user_controller.get_user_info_by_username(username)
+        user_id = infos[0]
+        salt = uuid.uuid4().hex
+        hashed_password = hashlib.sha512(
+            str(token + salt).encode('utf-8')).hexdigest()
+        user_controller.update_user_password(user_id, salt, hashed_password)
+        # delete account
+        user_controller.delete_account_by_username(username)
+        # update session
+        id_session = uuid.uuid4().hex
+        session_controller.save_session(id_session, username)
+        session['id'] = id_session
+        redirect_url = GLOBAL_URL + '/myaccount'
+        return jsonify({'success': True, 'url': redirect_url}), 201
+    else:
+        redirect_url = GLOBAL_URL + '/password_recovery/validate'
+        return jsonify({'success': False,
+                        'url': redirect_url,
+                        'error': ERR_PASSWORD}), 401
 
 
 
