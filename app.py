@@ -157,7 +157,6 @@ def login():
         return make_response(jsonify({'success': False, 'error': ERR_FORM})), 400
 
     user = user_controller.select_user_by_email(email)
-    print(user)
     if user is None:
         return make_response(jsonify({'success': False, 'error': ERR_PASSWORD})), 401
 
