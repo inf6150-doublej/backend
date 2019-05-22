@@ -156,15 +156,14 @@ def login():
     if request_data_is_invalid(email=email, password=password):
         return make_response(jsonify({'success': False, 'error': ERR_FORM})), 400
 
-    user = user_controller.select_user_hash_by_email(email)
+    user = user_controller.select_user_by_email(email)
     print(user)
     if user is None:
         return make_response(jsonify({'success': False, 'error': ERR_PASSWORD})), 401
 
-    salt = user[0]
-    hashed_password = hashlib.sha512(
-        str(password + salt).encode('utf-8')).hexdigest()
-    if hashed_password == user[1]:
+    salt = user[7]
+    hashed_password = hashlib.sha512(str(password + salt).encode('utf-8')).hexdigest()
+    if hashed_password == user[8]:
         id_session = uuid.uuid4().hex
         session_controller.save(id_session, email)
         session['id'] = id_session
