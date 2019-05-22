@@ -69,4 +69,4 @@ def to_list_of_dict(users):
 def to_dict(row):
     return {"id": row[0], "username": row[1], "email": row[2],
             "name": row[3], "family_name": row[4],
-            "phone": row[5], "address": row[6], "admin": row[7], }
+            "phone": row[5], "address": row[6], "admin": row[9], }
