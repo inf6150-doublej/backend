@@ -191,7 +191,7 @@ def register():
             hashed_password = hashlib.sha512(
                 str(password + salt).encode('utf-8')).hexdigest()
             user_controller.create(
-                username, email, name, last_name, phone, address, salt, hashed_password)
+                username, email, name, last_name, phone, address, salt, hashed_password, False)
             id_session = uuid.uuid4().hex
             session_controller.save(id_session, email)
             session['id'] = id_session

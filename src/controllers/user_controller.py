@@ -7,7 +7,7 @@ def create(username, email, name, family_name, phone, address, salt, hash, admin
     connection = Database.get_connection()
     connection.execute((
         "INSERT INTO User(username, name, family_name, "
-        "phone, address, email, salt, hash)"
+        "phone, address, email, salt, hash, admin)"
         " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)"),
         (username, name, family_name, phone, address, email, salt, hash, admin))
     connection.commit()
