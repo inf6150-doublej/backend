@@ -3,7 +3,7 @@
 insert into User (id, username, email, name, family_name, phone, address, salt, hash) values (1,'julien', 'julienguite@gmail.com', 'julien', 'guite', '450-444-4441', '1200 rue test', 'cbf02b048d1649deb5b9a381f15b7a3d', 'a3b61ddd36e5c2b041dcea14039710d1e5a5cac8694b2b20f6a320259566cfcb4d8ce5217135cf227a96f2d57d7eebd2e12d10a6f2963d88e8ac2c5c63568f0d');
 insert into User (id, username, email, name, family_name, phone, address, salt, hash) values (2,'frank', 'test2@test.com', 'frank', 'guite2', '450-444-4442', '1232 rue test','cbf02b048d1649deb5b9a381f15b7a3d', 'a3b61ddd36e5c2b041dcea14039710d1e5a5cac8694b2b20f6a320259566cfcb4d8ce5217135cf227a96f2d57d7eebd2e12d10a6f2963d88e8ac2c5c63568f0d');
 insert into User (id, username, email, name, family_name, phone, address, salt, hash) values (3,'luce', 'test3@test.com', 'luce', 'guite3', '450-444-4443', '1233 rue test','cbf02b048d1649deb5b9a381f15b7a3d', 'a3b61ddd36e5c2b041dcea14039710d1e5a5cac8694b2b20f6a320259566cfcb4d8ce5217135cf227a96f2d57d7eebd2e12d10a6f2963d88e8ac2c5c63568f0d');
-insert into User (id, username, email, name, family_name, phone, address, salt, hash) values (4,'renee','test4@test.com','renee', 'guite4', '450-444-4444', '1234 rue test','cbf02b048d1649deb5b9a381f15b7a3d', 'a3b61ddd36e5c2b041dcea14039710d1e5a5cac8694b2b20f6a320259566cfcb4d8ce5217135cf227a96f2d57d7eebd2e12d10a6f2963d88e8ac2c5c63568f0d');
+insert into Us#er (id, username, email, name, family_name, phone, address, salt, hash) values (4,'renee','test4@test.com','renee', 'guite4', '450-444-4444', '1234 rue test','cbf02b048d1649deb5b9a381f15b7a3d', 'a3b61ddd36e5c2b041dcea14039710d1e5a5cac8694b2b20f6a320259566cfcb4d8ce5217135cf227a96f2d57d7eebd2e12d10a6f2963d88e8ac2c5c63568f0d');
 insert into User (id, username, email, name, family_name, phone, address, salt, hash) values (5,'michelle', 'test5@test.com','michelle', 'guite5', '450-444-4445', '1235 rue test','cbf02b048d1649deb5b9a381f15b7a3d', 'a3b61ddd36e5c2b041dcea14039710d1e5a5cac8694b2b20f6a320259566cfcb4d8ce5217135cf227a96f2d57d7eebd2e12d10a6f2963d88e8ac2c5c63568f0d');
 insert into User (id, username, email, name, family_name, phone, address, salt, hash) values (6,'claude', 'test6test.com','claude', 'guite6', '450-444-4446', '1236 rue test','cbf02b048d1649deb5b9a381f15b7a3d', 'a3b61ddd36e5c2b041dcea14039710d1e5a5cac8694b2b20f6a320259566cfcb4d8ce5217135cf227a96f2d57d7eebd2e12d10a6f2963d88e8ac2c5c63568f0d');
 insert into User (id, username, email, name, family_name, phone, address, salt, hash) values (7,'flavie', 'test7@test.com','flavie', 'guite7', '450-444-4447', '1237 rue test', 'cbf02b048d1649deb5b9a381f15b7a3d', 'a3b61ddd36e5c2b041dcea14039710d1e5a5cac8694b2b20f6a320259566cfcb4d8ce5217135cf227a96f2d57d7eebd2e12d10a6f2963d88e8ac2c5c63568f0d');
@@ -21,7 +21,7 @@ insert into User (id, username, email, name, family_name, phone, address, salt, 
 --type de room
 -- 1 arena 2 auditorium 3 bar 4 universite 5 theatre 6 centre culturel 7 maison 8 exterieur
 INSERT INTO Room (id, name, type, capacity, description,reservation_id) VALUES (1,'metropolis',2,1000,'receptif et comprehnsible',null);
-INSERT INTO Room (id, name, type, capacity, description,reservation_id) VALUES (2,'spectrum',2, 1500,2,'aceeuillant et genereux',null);
+INSERT INTO Room (id, name, type, capacity, description,reservation_id) VALUES (2,'spectrum',2, 1500,'aceeuillant et genereux',null);
 INSERT INTO Room (id, name, type, capacity, description,reservation_id) VALUES (3,'centre bell',1, 26000,'go habs go',null);
 INSERT INTO Room (id, name, type, capacity, description,reservation_id) VALUES (4,'centre videotron',1, 20000,'lets go nordique',null);
 INSERT INTO Room (id, name, type, capacity, description,reservation_id) VALUES (5,'foufounes electriques',3,500,'veux tu fourrer a soir',null);
@@ -31,12 +31,16 @@ INSERT INTO Room (id, name, type, capacity, description,reservation_id) VALUES (
 INSERT INTO Room (id, name, type, capacity, description,reservation_id) VALUES (9,'pk-620',4, 30,'etre ou ne pas etre',null);
 INSERT INTO Room (id, name, type, capacity, description,reservation_id) VALUES (10,'p-420',4,200,'on fait de la gestion yeahh',null);
 INSERT INTO Room (id, name, type, capacity, description,reservation_id) VALUES (11,'saint-siboire',3,100,'sua brosse',null);
-INSERT INTO Room (id, name, type, capacity, description,reservation_id) VALUES (12,'theatre du nouveau monde',5, 200,null);
+INSERT INTO Room (id, name, type, capacity, description,reservation_id) VALUES (12,'theatre du nouveau monde',5, 200, 'nice',null);
 INSERT INTO Room (id, name, type, capacity, description,reservation_id) VALUES (13,'theatre national',5,300,'les meilleurs artistede chez nous',null);
 INSERT INTO Room (id, name, type, capacity, description,reservation_id) VALUES (14,'centre culturel marcel',6,200,'luminuex et chaleureux',null);
 INSERT INTO Room (id, name, type, capacity, description,reservation_id) VALUES (15,'chez toi',7, 50,'c est donc ben beau chez vous',null);
 INSERT INTO Room (id, name, type, capacity, description,reservation_id) VALUES (16,'plaines abraham',8,100000,'party!',null);
 
 
-SELECT * FROM Room;
-SELECT * FROM User;
+INSERT INTO Equipment(id, room_id, computer, white_board, sound_system, projector) VALUES(1, 1, 1, 0, 1, 1);
+INSERT INTO Equipment(id, room_id, computer, white_board, sound_system, projector) VALUES(2, 12, 1, 1, 1, 1);
+INSERT INTO Equipment(id, room_id, computer, white_board, sound_system, projector) VALUES(3, 16, 0, 0, 0, 0);
+
+--SELECT * FROM Room;
+--SELECT * FROM User;
