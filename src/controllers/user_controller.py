@@ -42,6 +42,7 @@ def select_user_by_email(email):
     if user is None:
         return None
     else:
+        user = to_dict(user)
         return user
 
 

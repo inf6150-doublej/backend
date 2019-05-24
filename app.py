@@ -262,13 +262,46 @@ def generate_token():
     return new_password
 
 
-@app.route('/admin/users/<int:id>', methods=['DELETE'])
-def admin_delete_user(id):
-    user_controller.delete(id)
-    return make_response(jsonify({'success': True, 'id': id})), 201
+@app.route('/admin/users/<int:id>', methods=['DELETE', 'PUT'])
+def admin_manage_user(id):
+    if request.method == 'DELETE':
+        user_controller.delete(id)
+        return make_response(jsonify({'id': id})), 201
+    elif request.method == 'PUT':
+        user = request.json['user']
+        username = user['username']
+        name = user['name']
+        family_name = user['family_name']
+        phone = user['phone']
+        address = user['address']
+        password = user['password']
+        email = user['email']
+        admin = user['admin']
+        salt = uuid.uuid4().hex
+        hash = hashlib.sha512(str(password + salt).encode('utf-8')).hexdigest()
+        user_controller.update(id, username, email, name, family_name, phone, address, salt, hash, admin)
+        return make_response(jsonify({'user': user})), 201
+   
+
+@app.route('/admin/users/create', methods=['POST'])
+def admin_create_user():
+    user = request.json['user']
+    username = user['username']
+    name = user['name']
+    family_name = user['family_name']
+    phone = user['phone']
+    address = user['address']
+    password = user['password']
+    email = user['email']
+    admin = user['admin']
+    salt = uuid.uuid4().hex
+    hash = hashlib.sha512(str(password + salt).encode('utf-8')).hexdigest()
+    user_controller.create(username, email, name, family_name, phone, address, salt, hash, admin)
+    user = user_controller.select_user_by_email(email)
+    return make_response(jsonify({'user': user})), 201      
 
 
-@app.route('/admin/users', methods=['POST', 'GET'])
+@app.route('/admin/users', methods=['GET'])
 def admin_select_all_users():
     users = user_controller.select_all()
     return make_response(jsonify({'users':users})), 200
