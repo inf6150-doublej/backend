@@ -21,7 +21,7 @@ class Database:
             Database.__instance = self
             current_path = os.path.abspath(os.path.dirname(__file__))
             path = os.path.join(current_path, 'db.db')
-            self.connection = sqlite3.connect(path)
+            self.connection = sqlite3.connect(path, check_same_thread=False)
 
 
     def disconnect(self):

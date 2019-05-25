@@ -137,6 +137,49 @@ def reservation():
     reservation_controller.save(user_id, room_id, begin, end)
     return make_response(jsonify({'succes':True })), 201
 
+@app.route('/rooms', methods=['GET'])
+def get_rooms():
+    rooms = room_controller.room_to_list_of_dict(room_controller.select_all())
+    return make_response(jsonify({'rooms': rooms}), 200)
+
+@app.route('/rooms', methods=['POST'])
+@admin_required
+def create_room():   
+    name = request.json['name']
+    type = request.json['type']
+    capacity = request.json['capacity']
+    description = request.json['description']
+    reservation_id = request.json['reservation_id']
+    equipment_id = request.json['equipment_id']
+    new_id = room_controller.create(name,type,capacity,description,reservation_id, equipment_id)
+    return make_response(jsonify({'id': new_id}), 200)
+
+@app.route('/rooms/<int:room_id>', methods=['DELETE'])
+@admin_required
+def delete_room_by_id(room_id):
+    rooms = room_controller.select_by_id(room_id)
+    if rooms is None:
+        return make_response(jsonify({'success': False})), 204
+    else:
+        room_controller.delete(room_id)
+        return make_response(jsonify({'success': True})), 200
+
+@app.route('/rooms/<int:room_id>', methods=['PUT'])
+@admin_required
+def update_room_by_id(room_id):
+    rooms = room_controller.select_by_id(room_id)
+    if rooms is None:
+        return make_response(jsonify({'success': False})), 204
+    else:
+        id = request.json['id']
+        name = request.json['name']
+        type = request.json['type']
+        capacity = request.json['capacity']
+        description = request.json['description']
+        reservation_id = request.json['reservation_id']
+        equipment_id = request.json['equipment_id']
+        rooms = room_controller.update(id,name,type,capacity,description,reservation_id,equipment_id)
+        return make_response(jsonify({'rooms': rooms})), 200
 
 @app.route('/rooms/<int:room_id>', methods=['GET'])
 def get_room_by_id(room_id):
@@ -144,7 +187,7 @@ def get_room_by_id(room_id):
     if rooms is None:
         return make_response(jsonify({'success': False})), 204
     else:
-        return make_response(jsonify({'success': True, 'rooms': rooms})), 200
+        return make_response(jsonify({'rooms': rooms})), 200
 
 
 @app.route('/login', methods=['POST'])
@@ -159,10 +202,11 @@ def login():
     user = user_controller.select_user_by_email(email)
     if user is None:
         return make_response(jsonify({'success': False, 'error': ERR_PASSWORD})), 401
-
-    salt = user[7]
+   
+    salt = user_controller.get_id_salt(user['id'])
+    
     hashed_password = hashlib.sha512(str(password + salt).encode('utf-8')).hexdigest()
-    if hashed_password == user[8]:
+    if hashed_password == user_controller.get_id_hash(user['id']):
         id_session = uuid.uuid4().hex
         session_controller.save(id_session, email)
         session['id'] = id_session
