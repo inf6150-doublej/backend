@@ -144,13 +144,13 @@ def get_rooms():
 
 @app.route('/rooms', methods=['POST'])
 @admin_required
-def create_room():   
-    name = request.json['name']
-    type = request.json['type']
-    capacity = request.json['capacity']
-    description = request.json['description']
-    reservation_id = request.json['reservation_id']
-    equipment_id = request.json['equipment_id']
+def create_room():  
+    name = request.json['room']['name']
+    type = request.json['room']['type']
+    capacity = request.json['room']['capacity']
+    description = request.json['room']['description']
+    reservation_id = request.json['room']['reservation_id']
+    equipment_id = request.json['room']['equipment_id']
     new_id = room_controller.create(name,type,capacity,description,reservation_id, equipment_id)
     return make_response(jsonify({'id': new_id}), 200)
 
@@ -170,14 +170,14 @@ def update_room_by_id(room_id):
     rooms = room_controller.select_by_id(room_id)
     if rooms is None:
         return make_response(jsonify({'success': False})), 204
-    else:
-        id = request.json['id']
-        name = request.json['name']
-        type = request.json['type']
-        capacity = request.json['capacity']
-        description = request.json['description']
-        reservation_id = request.json['reservation_id']
-        equipment_id = request.json['equipment_id']
+    else:        
+        id = room_id
+        name = request.json['room']['name']
+        type = request.json['room']['type']
+        capacity = request.json['room']['capacity']
+        description = request.json['room']['description']
+        reservation_id = request.json['room']['reservation_id']
+        equipment_id = request.json['room']['equipment_id']
         rooms = room_controller.update(id,name,type,capacity,description,reservation_id,equipment_id)
         return make_response(jsonify({'rooms': rooms})), 200
 
