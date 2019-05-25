@@ -42,8 +42,26 @@ def select_user_by_email(email):
     if user is None:
         return None
     else:
+        user = to_dict(user)
         return user
 
+def get_id_salt(id):
+    cursor = Database.get_connection().cursor()
+    cursor.execute('SELECT salt FROM User WHERE id=?', (id,))
+    user = cursor.fetchone()
+    if user is None:
+        return None
+    else:       
+        return user[0]
+
+def get_id_hash(id):
+    cursor = Database.get_connection().cursor()
+    cursor.execute('SELECT hash FROM User WHERE id=?', (id,))
+    user = cursor.fetchone()
+    if user is None:
+        return None
+    else:       
+        return user[0]
 
 def select_all():
     connection = Database.get_connection()

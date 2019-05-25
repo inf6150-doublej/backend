@@ -34,6 +34,7 @@ def create(name, type, capacity, description, reservation_id, equipment_id):
         "VALUES(?, ?, ?, ?, ?, ?)",
         (name, type, capacity, description, reservation_id, equipment_id,))
     connexion.commit()
+    return cursor.lastrowid
 
 
 def select_by_id(id):
@@ -74,7 +75,7 @@ def select_by_reservation_id(reservation_id):
     return cursor.fetchall()
 
 
-def room_to_list_of_dict(room):
+def room_to_list_of_dict(rooms):
     room_list = []
     for row in rooms:
         room_list.append(to_dict(row))
