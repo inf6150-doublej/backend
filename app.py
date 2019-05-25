@@ -138,6 +138,57 @@ def reservation():
     return make_response(jsonify({'succes':True })), 201
 
 
+@app.route('/admin/reservations', methods=['GET'])
+def admin_select_all_reservations():
+    reservations = reservation_controller.select_all()
+    return make_response(jsonify({'reservations':reservations})), 200
+
+
+@app.route('/admin/reservations/<int:id>', methods=['PUT', 'DELETE'])
+def admin_manage_reservation(id):
+    if request.method == 'DELETE':
+        reservation_controller.delete(id)
+        return make_response(jsonify({'id': id})), 201
+    elif request.method == 'PUT':
+        data = request.json[data]
+        room = data['room']
+        user = data['user']
+        begin = data['begin']
+        end = data['end']
+        begin = begin[:24]
+        end = end[:24]
+        begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
+        end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
+        user_id = int(user['id'])
+        room_id = int(room[0])
+        reservation_controller.update(user_id, room_id, begin, end)
+        if request_data_is_invalid(query=user_id) and request_data_is_invalid(query=room_id) and request_data_is_invalid(query=id):
+            return make_response(jsonify({'success': False, 'error': ERR_BLANK})), 204
+        reservation_controller.save(user_id, room_id, begin, end)
+        return make_response(jsonify({'succes':True })), 201
+    
+
+@app.route('/admin/reservations/create', methods=['POST'])
+def admin_create_reservation():
+    data = request.json['data']
+    room = data['room']
+    user = data['user']
+    begin = data['begin']
+    end = data['end']
+    begin = begin[:24]
+    end = end[:24]
+    begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
+    end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
+    user_id = int(user['id'])
+    room_id = int(room[0])
+    reservation_controller.save(user_id, room_id, begin, end)
+    if request_data_is_invalid(query=user_id) and request_data_is_invalid(query=room_id):
+        return make_response(jsonify({'success': False, 'error': ERR_BLANK})), 204
+    reservation_controller.save(user_id, room_id, begin, end)
+    return make_response(jsonify({'succes':True })), 201
+     
+
+
 @app.route('/rooms/<int:room_id>', methods=['GET'])
 def get_room_by_id(room_id):
     rooms = room_controller.select_by_id(room_id)
