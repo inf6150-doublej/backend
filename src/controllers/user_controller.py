@@ -25,13 +25,13 @@ def delete_by_email(email):
     connection.commit()
 
 
-def update(id, username, email, name, family_name, phone, address, salt, hash, admin):
+def update(id, username, email, name, family_name, phone, address, admin):
     connection = Database.get_connection()
     connection.execute('UPDATE User '
                         'SET username=?, email=?, name=?, family_name=?, phone=?, '
-                        'address=?, salt=?, hash=?, admin=?'
+                        'address=?, admin=?'
                         'WHERE id=?',
-                        (username, name, family_name, phone, address, email, salt, hash, admin, id,))
+                        (username, name, family_name, phone, address, email, admin, id,))
     connection.commit()
 
 

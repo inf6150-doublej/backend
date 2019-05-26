@@ -323,7 +323,7 @@ def password_recovery():
 
 
 def send_recovery_email(user_email):
-    user = user_controller.select_user_info_by_email(user_email)
+    user = user_controller.select_user_by_email(user_email)
     if user:
         token = generate_token()
         date = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -369,12 +369,12 @@ def admin_manage_user(id):
         family_name = user['family_name']
         phone = user['phone']
         address = user['address']
-        password = user['password']
+        #password = user['password']
         email = user['email']
         admin = user['admin']
-        salt = uuid.uuid4().hex
-        hash = hashlib.sha512(str(password + salt).encode('utf-8')).hexdigest()
-        user_controller.update(id, username, email, name, family_name, phone, address, salt, hash, admin)
+        #salt = uuid.uuid4().hex
+        #hash = hashlib.sha512(str(password + salt).encode('utf-8')).hexdigest()
+        user_controller.update(id, username, email, name, family_name, phone, address, admin)
         return make_response(jsonify({'user': user})), 201
    
 
