@@ -19,7 +19,7 @@ create table Room (
   description varchar(512),
   reservation_id integer,
   equipment_id integer,
-  FOREIGN KEY (reservation_id) REFERENCES Reservation(id) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (reservation_id) REFERENCES Reservation(id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (equipment_id) REFERENCES Equipment(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -29,7 +29,7 @@ create table Reservation (
   room_id integer,
   date_begin date,
   date_end date,
-  FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (room_id) REFERENCES Room(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -52,3 +52,4 @@ create table Equipment (
   FOREIGN KEY (room_id) REFERENCES Room(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+PRAGMA foreign_keys=on;
