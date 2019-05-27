@@ -1,4 +1,4 @@
-APScheduler==3.6.0
+APScheduler==3.5.3
 BareNecessities==0.2.8
 blinker==1.4
 Click==7.0
@@ -6,8 +6,6 @@ Flask==1.0.2
 Flask-Cors==3.0.7
 Flask-Mail==0.9.1
 Flask-Script==2.0.6
-funcsigs==1.0.2
-futures==3.2.0
 gunicorn==19.9.0
 itsdangerous==1.1.0
 Jinja2==2.10.1
