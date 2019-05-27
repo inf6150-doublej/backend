@@ -24,6 +24,7 @@ class Database:
             self.connection = sqlite3.connect(path, check_same_thread=False)
 
 
-    def disconnect(self):
-        if self.connection is not None:
-            self.connection.close()
+    @staticmethod
+    def disconnect():
+        if Database.__instance is not None:
+            Database.__instance.connection.close()

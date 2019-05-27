@@ -51,26 +51,26 @@ app.config.update(
 mail = Mail(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 config = {
-  'ORIGINS': [
-    'http://localhost:3000',  # React
-    'https://bookingexpert.herokuapp.com',  # React
-  ],
-
-  'SECRET_KEY': '...'
+    'ORIGINS': [
+        'http://localhost:3000',  # React
+        'https://bookingexpert.herokuapp.com',  # React
+    ],
+    'SECRET_KEY': '...'
 }
 CORS(app, supports_credentials=True)
 #TODO white list in CORS
 
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.disconnect()
+
+# @app.teardown_appcontext
+# def close_connection(exception):
+#     print('exception')
+#     print(exception)
+#     Database.disconnect()
 
 
 @app.errorhandler(404)
 def page_not_found():
-    return make_response(jsonify({'success': False}), 404)
+    return make_response(jsonify({'error': ERR_404}), 404)
 
 
 def authentication_required(f):
@@ -96,6 +96,7 @@ def is_admin(session):
     if admin is None : return False
     return True
 
+
 def is_authenticated(session):
     return 'id' in session
 
@@ -111,8 +112,10 @@ def start():
 
 @app.route('/getuser', methods=['POST'])
 def get_user():
+    if not is_authenticated(session):
+        return make_response(jsonify({'user': None}), 200)   
     user = session_controller.select_user_by_session_id(session['id'])
-    return make_response(jsonify({"user": user}), 200)
+    return make_response(jsonify({'user': user}), 200)
 
 
 @app.route('/search', methods=['POST'])
@@ -257,14 +260,12 @@ def login():
 
     # data validation
     if request_data_is_invalid(email=email, password=password):
-        return make_response(jsonify({'success': False, 'error': ERR_FORM})), 400
+        return make_response(jsonify({'error': ERR_FORM})), 400
 
     user = user_controller.select_user_by_email(email)
     if user is None:
-        return make_response(jsonify({'success': False, 'error': ERR_PASSWORD})), 401
-   
+        return make_response(jsonify({'error': ERR_PASSWORD})), 401
     salt = user_controller.get_id_salt(user['id'])
-    
     hashed_password = hashlib.sha512(str(password + salt).encode('utf-8')).hexdigest()
     if hashed_password == user_controller.get_id_hash(user['id']):
         id_session = uuid.uuid4().hex
@@ -272,22 +273,23 @@ def login():
         session['id'] = id_session
         return make_response(jsonify({'success': True})), 200
     else:
-        return make_response(jsonify({'success': False, 'error': ERR_PASSWORD})), 401
+        return make_response(jsonify({'error': ERR_PASSWORD})), 401
 
 
 @app.route('/register', methods=['POST'])
 def register():
-    username = request.json['username']
-    name = request.json['name']
-    last_name = request.json['last_name']
-    phone = request.json['phone']
-    address = request.json['address']
-    password = request.json['password']
-    email = request.json['email']
+    user = request.json['user']
+    username = user['username']
+    name = user['name']
+    last_name = user['last_name']
+    phone = user['phone']
+    address = user['address']
+    password = user['password']
+    email = user['email']
 
     # data validation
     if request_data_is_invalid(username=username, name=name, last_name=last_name, phone=phone, address=address, password=password, email=email):
-        return make_response(jsonify({'success': False, 'error': ERR_FORM})), 400
+        return make_response(jsonify({'error': ERR_FORM})), 400
     else:
         try:
             salt = uuid.uuid4().hex
@@ -295,14 +297,22 @@ def register():
                 str(password + salt).encode('utf-8')).hexdigest()
             user_controller.create(
                 username, email, name, last_name, phone, address, salt, hashed_password, False)
+            send_email(email, MSG_MAIL_REGISTER_SUCCESS_SUBJECT, MSG_MAIL_REGISTER_SUCCESS_BODY)
             id_session = uuid.uuid4().hex
             session_controller.save(id_session, email)
             session['id'] = id_session
-            send_email(email, MSG_MAIL_REGISTER_SUCCESS_SUBJECT, MSG_MAIL_REGISTER_SUCCESS_BODY)
-            return jsonify({'success': True }), 201
+            return make_response(jsonify({'user':user})), 201
         # Unique constraint must be respected
         except IntegrityError:
-            return jsonify({'success': False, 'error': ERR_UNI_USER}), 403
+            print('unique user')
+            return make_response(jsonify({'error': ERR_UNI_USER})), 403
+        except SMTPException:
+            print('error email')
+            #TODO remove saving session ( now we want to create invalid emails for testing)
+            id_session = uuid.uuid4().hex
+            session_controller.save(id_session, email)
+            session['id'] = id_session
+            return make_response(jsonify({'error': ERR_EMAIL})), 200
 
 
 @app.route('/logout', methods=['POST'])
@@ -352,11 +362,7 @@ def send_email(recipient, subject, message):
     date = datetime.datetime.now().strftime('%Y-%m-%d')
     msg = Message(subject, recipients=[recipient])
     msg.body = message
-    try:
-        mail.send(msg)
-    except SMTPException:
-        return False
-    return True
+    mail.send(msg)
 
 
 def generate_token():
