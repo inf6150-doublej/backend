@@ -60,6 +60,13 @@ def select_all():
     return cursor.fetchall()
 
 
+def select_all_available():
+    connexion = Database.get_connection()
+    cursor = connexion.cursor()
+    cursor.execute('SELECT * FROM Room r WHERE r.reservation_id IS NULL')
+    return cursor.fetchall()
+
+
 def select_by_name(name):
     connexion = Database.get_connection()
     cursor = connexion.cursor()

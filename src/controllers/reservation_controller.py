@@ -1,11 +1,19 @@
 from db.database import Database
-
+from sqlite3 import Error
 
 def save(user_id, room_id, begin, end):
     connection = Database.get_connection()
-    connection.execute(("INSERT INTO Reservation(user_id, room_id, date_begin, date_end) VALUES(?, ?, ?, ?)"), (user_id, room_id, begin, end))
+    cursor = connection.cursor()
+    try:
+        cursor.execute(("INSERT INTO Reservation(user_id, room_id, date_begin, date_end) VALUES(?, ?, ?, ?)"), (user_id, room_id, begin, end))
+        connection.commit()
+    except Error:
+        return -1
+    reservation_id = cursor.lastrowid
+    cursor.execute('UPDATE Room Set reservation_id=? WHERE id=?', (reservation_id, room_id))
     connection.commit()
-    
+    return reservation_id
+
 
 def update(id, user_id, room_id, begin, end):
     connection = Database.get_connection()

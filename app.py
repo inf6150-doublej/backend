@@ -2,6 +2,8 @@
 import os, sys, sqlite3, hashlib, uuid, io, datetime, random, math
 sys.path.append(os.path.dirname(__file__))
 from sqlite3 import IntegrityError, Error
+from apscheduler.schedulers.background import BackgroundScheduler
+from db.database import Database
 from functools import wraps
 from smtplib import SMTPException
 from flask import g, Flask, make_response, jsonify, session, request
@@ -12,6 +14,9 @@ from src.constants.constants import *
 
 
 app = Flask(__name__)
+scheduler = BackgroundScheduler()
+scheduler.start()
+
 
 def config_mail():
     config_list = []
@@ -115,7 +120,7 @@ def search_room():
     data = request.json['data']
     if request_data_is_invalid(query=data):
         return make_response(jsonify({'success': False, 'error': ERR_BLANK})), 204
-    rooms = room_controller.select_all()
+    rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available())
     return make_response(jsonify({'rooms': rooms})), 200
 
 
@@ -131,16 +136,20 @@ def reservation():
     begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
     end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
     user_id = int(user['id'])
-    room_id = int(room[0])
+    room_id = int(room['id'])
     if request_data_is_invalid(query=data):
-        return make_response(jsonify({'success': False, 'error': ERR_BLANK})), 204
-    reservation_controller.save(user_id, room_id, begin, end)
-    return make_response(jsonify({'succes':True })), 201
+        return make_response(jsonify({'error': ERR_BLANK})), 204
+    reservation_id = reservation_controller.save(user_id, room_id, begin, end)
+    #TODO add pytz for heroku
+    scheduler.add_job(lambda: reservation_controller.delete(reservation_id), 'cron', hour=end.hour, minute=end.minute)
+    return make_response(jsonify({'success':True})), 201
+
 
 @app.route('/rooms', methods=['GET'])
 def get_rooms():
     rooms = room_controller.room_to_list_of_dict(room_controller.select_all())
     return make_response(jsonify({'rooms': rooms}), 200)
+
 
 @app.route('/rooms', methods=['POST'])
 @admin_required
@@ -178,7 +187,7 @@ def update_room_by_id(room_id):
         description = request.json['room']['description']
         reservation_id = request.json['room']['reservation_id']
         equipment_id = request.json['room']['equipment_id']
-        rooms = room_controller.update(id,name,type,capacity,description,reservation_id,equipment_id)
+        rooms = room_controller.update(id, name, type, capacity, description, reservation_id, equipment_id)
         return make_response(jsonify({'rooms': rooms})), 200
 
 @app.route('/admin/reservations', methods=['GET'])
@@ -193,7 +202,7 @@ def admin_manage_reservation(id):
         reservation_controller.delete(id)
         return make_response(jsonify({'id': id})), 201
     elif request.method == 'PUT':
-        data = request.json[data]
+        data = request.json['data']
         room = data['room']
         user = data['user']
         begin = data['begin']
