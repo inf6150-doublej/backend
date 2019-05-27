@@ -3,6 +3,7 @@ GLOBAL_URL = "https://doublej.herokuapp.com"
 ERR_PASSWORD = "Mot de passe ou nom d'utilisateur incorrect"
 ERR_UNAUTH = "Vous devez vous connecter pour avoir accès à cette page"
 ERR_BLANK = "Recherche vide"
+ERR_EMAIL = "Email invalide"
 ERR_FORM = 'Le formulaire doit être rempli'
 ERR_UNI_USER = "Le nom d'utilisateur existe déjà, choississez un autre nom"
 ERR_UNI_POST = "Vous avez déjà un animal en attente d'adoption"
