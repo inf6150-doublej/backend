@@ -11,6 +11,7 @@ ERR_NODATA = "Nous n'avons pas trouvé ce que vous cherchez"
 ERR_SERVOR = "La transaction n'a pas été effectuée"
 ERR_NOPOST = "Vous n'avez pas d'annonce affichée"
 ERR_404 = "Cette page n'existe pas"
+ERR_RESERVATION = "Impossible de reserver cette salle"
 
 MSG_DEL = "Votre annonce a été supprimée"
 MSG_MAIL_SENT_RECOVERY = "Récupérer votre mot de passe" \

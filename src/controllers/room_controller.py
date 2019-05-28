@@ -1,6 +1,8 @@
 import os
 import sys
+import datetime
 sys.path.append(os.path.abspath(os.path.join('..', 'backend')))
+sys.path.append(os.path.abspath(os.path.join('..', '..')))
 from binascii import a2b_base64
 from db.database import Database
 import sqlite3
@@ -60,11 +62,30 @@ def select_all():
     return cursor.fetchall()
 
 
-def select_all_available():
+def select_all_available(capacity, begin, end, equipment):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
-    cursor.execute('SELECT * FROM Room r WHERE r.reservation_id IS NULL')
+    equipment_sql = build_equipment_sql(equipment)
+    sql = "select * from Room r JOIN Equipment e ON r.id = e.room_id WHERE r.id NOT IN "\
+    "(select room_id from (select * from Room ro JOIN Reservation re ON ro.id = re.room_id) " \
+    "WHERE date_begin >= ? AND date_end <= ?) "\
+    "AND r.capacity >= ?" + equipment_sql
+    cursor.execute(sql, (begin, end, capacity,))
     return cursor.fetchall()
+
+
+def build_equipment_sql(equipment):
+    sql = ''
+    for key, value in equipment.items():
+        if key == 'soundsystem' and value is True:
+            sql += ' AND e.sound_system = 1'
+        elif key == 'whiteboard' and value is True:
+            sql += ' AND e.white_board = 1'
+        elif key == 'projector' and value is True:
+            sql += ' AND e.projector = 1'
+        elif key == 'computer' and value is True:
+            sql += ' AND e.computer = 1'
+    return sql
 
 
 def select_by_name(name):
@@ -92,4 +113,23 @@ def room_to_list_of_dict(rooms):
 def to_dict(row):
     return {"id": row[0], "name": row[1], "type": row[2],
             "capacity": row[3], "description": row[4],
-            "reservation_id": row[5], "equipment_id": row[6]}
+            "equipment_id": row[5]}
+
+
+
+# to test uncomment and  => cd backend/src/room_controler && python3 room_controler.py
+# def print_res(data):
+#     print('')
+#     # for row in data:
+#     #     print(row)
+#     #     print('\n')
+
+
+# capacity = 50
+# begin= '2019 05 28 07:30:00'
+# end='2019 05 28 08:30:00'
+# equipment=None
+# begin = datetime.datetime.strptime(begin, "%Y %m %d %H:%M:%S")
+# end = datetime.datetime.strptime(end, "%Y %m %d %H:%M:%S")
+# res = select_all_available(capacity, begin, end, equipment)
+# print_res(res)

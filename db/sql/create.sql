@@ -17,9 +17,7 @@ create table Room (
   type integer,
   capacity integer,
   description varchar(512),
-  reservation_id integer,
   equipment_id integer,
-  FOREIGN KEY (reservation_id) REFERENCES Reservation(id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (equipment_id) REFERENCES Equipment(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
