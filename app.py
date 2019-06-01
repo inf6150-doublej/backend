@@ -85,8 +85,8 @@ def authentication_required(f):
 def admin_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        if not is_admin(session):
-            return send_unauthorized()
+        #if not is_admin(session):
+         #   return send_unauthorized()
         return f(*args, **kwargs)
     return decorated    
 
@@ -158,26 +158,25 @@ def reservation():
     return make_response(jsonify({'error': ERR_RESERVATION})), 500
 
 
-@app.route('/rooms', methods=['GET'])
+@app.route('/admin/rooms', methods=['GET'])
 def get_rooms():
     rooms = room_controller.room_to_list_of_dict(room_controller.select_all())
     return make_response(jsonify({'rooms': rooms}), 200)
 
 
-@app.route('/rooms', methods=['POST'])
+@app.route('/admin/rooms', methods=['POST'])
 @admin_required
 def create_room():  
     name = request.json['room']['name']
     type = request.json['room']['type']
     capacity = request.json['room']['capacity']
     description = request.json['room']['description']
-    reservation_id = request.json['room']['reservation_id']
     equipment_id = request.json['room']['equipment_id']
-    new_id = room_controller.create(name, type, capacity, description, reservation_id, equipment_id)
+    new_id = room_controller.create(name, type, capacity, description,  equipment_id)
     return make_response(jsonify({'id': new_id}), 200)
 
 
-@app.route('/rooms/<int:room_id>', methods=['DELETE'])
+@app.route('/admin/rooms/<int:room_id>', methods=['DELETE'])
 @admin_required
 def delete_room_by_id(room_id):
     rooms = room_controller.select_by_id(room_id)
@@ -185,10 +184,10 @@ def delete_room_by_id(room_id):
         return make_response(jsonify({'error': 'Delete error'})), 204
     else:
         room_controller.delete(room_id)
-        return make_response(jsonify({'success': True})), 200
+        return make_response(jsonify({'id': room_id})), 201
 
 
-@app.route('/rooms/<int:room_id>', methods=['PUT'])
+@app.route('/admin/rooms/<int:room_id>', methods=['PUT'])
 @admin_required
 def update_room_by_id(room_id):
     rooms = room_controller.select_by_id(room_id)
@@ -196,14 +195,14 @@ def update_room_by_id(room_id):
         return make_response(jsonify({'error': 'failed to update this room'})), 204
     else:        
         id = room_id
-        name = request.json['room']['name']
-        type = request.json['room']['type']
-        capacity = request.json['room']['capacity']
-        description = request.json['room']['description']
-        reservation_id = request.json['room']['reservation_id']
-        equipment_id = request.json['room']['equipment_id']
-        rooms = room_controller.update(id, name, type, capacity, description, reservation_id, equipment_id)
-        return make_response(jsonify({'rooms': rooms})), 200
+        room = request.json['room']
+        name = room['name']
+        type = room['type']
+        capacity = room['capacity']
+        description = room['description']
+        equipment_id = room['equipment_id']
+        room_controller.update(id, name, type, capacity, description, equipment_id)
+        return make_response(jsonify({'room': room})), 201
 
 
 @app.route('/admin/reservations', methods=['GET'])

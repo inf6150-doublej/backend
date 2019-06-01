@@ -15,26 +15,26 @@ def delete(id):
     connexion.commit()
 
 
-def update(id, name, type, capacity, description, reservation_id, equipment_id):
+def update(id, name, type, capacity, description, equipment_id):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
     sql_query = "UPDATE Room " \
         "SET name=?, type=?, capacity=?, description=?, " \
-        "reservation_id=?, equipment_id=?" \
+        "equipment_id=?" \
         "WHERE id=?"
-    cursor.execute(sql_query, (name, type, capacity, description, reservation_id, equipment_id, id,))
+    cursor.execute(sql_query, (name, type, capacity, description, equipment_id, id,))
     connexion.commit()
     return cursor.fetchone()
 
 
-def create(name, type, capacity, description, reservation_id, equipment_id):
+def create(name, type, capacity, description, equipment_id):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
     cursor.execute(
         "INSERT INTO Room(name, type, capacity, "
-        "description, reservation_id, equipment_id) "
-        "VALUES(?, ?, ?, ?, ?, ?)",
-        (name, type, capacity, description, reservation_id, equipment_id,))
+        "description,equipment_id) "
+        "VALUES(?, ?, ?, ?, ?)",
+        (name, type, capacity, description, equipment_id,))
     connexion.commit()
     return cursor.lastrowid
 
