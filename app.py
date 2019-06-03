@@ -346,9 +346,7 @@ def logout():
 
 
 def request_data_is_invalid(**kwargs):
-    print(kwargs.items())
     for value in kwargs.items():
-        print(value)
         if value == '' or value is None:
             return True
     return False
