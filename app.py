@@ -88,13 +88,15 @@ def admin_required(f):
         if not is_admin(session):
            return send_unauthorized()
         return f(*args, **kwargs)
-    return decorated    
+    return decorated 
 
 
 def is_admin(session):
-    admin = session_controller.select_user_by_session_id(session['id'])
-    if admin is None : return False
-    return True
+    user = session_controller.select_user_by_session_id(session['id'])
+    if user is None : return False
+    is_admin = user['admin']
+    if is_admin: return True 
+    return False
 
 
 def is_authenticated(session):
@@ -125,13 +127,14 @@ def search_rooms():
     end = data['end']
     capacity = data['capacity']
     equipment = data['equipment']
+    room_type = int(data['type'])
     if request_data_is_invalid(query=data):
         return make_response(jsonify({'error': ERR_BLANK})), 204
     begin = begin[:24]
     end = end[:24]
     begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
     end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
-    rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available(capacity, begin, end, equipment))
+    rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available(capacity, begin, end, equipment, room_type))
     return make_response(jsonify({'rooms': rooms})), 200
 
 
