@@ -42,8 +42,8 @@ def select_user_by_email(email):
     if user is None:
         return None
     else:
-        user = to_dict(user)
         return user
+
 
 def get_id_salt(id):
     cursor = Database.get_connection().cursor()
@@ -71,9 +71,11 @@ def select_all():
     return users
 
 
-def update_password(id, salt, hash):
+def update_password(id, hash_password):
+    print(id)
+    print(hash_password)
     connection = Database.get_connection()
-    connection.execute('UPDATE User SET salt=?, hash=? WHERE id=?', (salt, hash, id,))
+    connection.execute('UPDATE User SET hash=? WHERE id=?', (hash_password, id,))
     connection.commit()
 
 
