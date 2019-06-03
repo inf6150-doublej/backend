@@ -7,12 +7,10 @@ def save(user_id, room_id, begin, end):
     try:
         cursor.execute(("INSERT INTO Reservation(user_id, room_id, date_begin, date_end) VALUES(?, ?, ?, ?)"), (user_id, room_id, begin, end))
         connection.commit()
+        return cursor.lastrowid
     except Error:
+        print('error save in Reservation')
         return -1
-    reservation_id = cursor.lastrowid
-    cursor.execute('UPDATE Room Set reservation_id=? WHERE id=?', (reservation_id, room_id))
-    connection.commit()
-    return reservation_id
 
 
 def update(id, user_id, room_id, begin, end):

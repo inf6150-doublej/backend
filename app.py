@@ -147,21 +147,21 @@ def reservation():
     begin = data['begin']
     end = data['end']
     if(user is None):
-        # abort(400, ERR_BLANK)
-        return jsonify({'error': ERR_BLANK}), 400
-        # return jsonify({'error': ERR_BLANK})), 422
+        return jsonify({'error': 'Missing User in form'}), 400
     begin = begin[:24]
     end = end[:24]
     begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
     end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
     user_id = int(user['id'])
     room_id = int(room['id'])
-    reservation_id = reservation_controller.save(user_id, room_id, begin, end)
-    #TODO add pytz for heroku
-    if reservation_id > 0 :
+    try:
+        reservation_id = reservation_controller.save(user_id, room_id, begin, end)
         scheduler.add_job(lambda: reservation_controller.delete(reservation_id), 'cron', hour=end.hour, minute=end.minute)
+        send_email(user['email'], MSG_MAIL_RESERVATION_SUCCESS_SUBJECT, MSG_MAIL_RESERVATION_SUCCESS_BODY)
         return jsonify({'success':True}), 201
-    return jsonify({'error': ERR_RESERVATION}), 500
+    except Error:
+        return jsonify({'error': 'save reservation error'}), 500
+
 
 
 @app.route('/admin/rooms', methods=['GET'])
@@ -178,7 +178,7 @@ def create_room():
     capacity = request.json['room']['capacity']
     description = request.json['room']['description']
     equipment_id = request.json['room']['equipment_id']
-    new_id = room_controller.create(name, type, capacity, description,  equipment_id)
+    new_id = room_controller.create(name, type, capacity, description, equipment_id)
     return jsonify({'id': new_id}), 200
 
 
@@ -234,10 +234,9 @@ def admin_manage_reservation(id):
         end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
         user_id = int(user['id'])
         room_id = int(room[0])
-        reservation_controller.update(user_id, room_id, begin, end)
         if request_data_is_invalid(user=user_id, room=room_id, id=id):
-            return jsonify({'error': ERR_BLANK}), 204
-        reservation_controller.save(user_id, room_id, begin, end)
+            return jsonify({'error': ERR_BLANK}), 400
+        reservation_controller.update(id, user_id, room_id, begin, end)
         return jsonify({'succes':True }), 201
     
 
@@ -336,7 +335,6 @@ def register():
 
 
 @app.route('/logout', methods=['POST'])
-@authentication_required
 def logout():
     if 'id' in session:
         id_session = session['id']
@@ -430,7 +428,7 @@ def admin_create_user():
     hash = hashlib.sha512(str(password + salt).encode('utf-8')).hexdigest()
     user_controller.create(username, email, name, family_name, phone, address, salt, hash, admin)
     user = user_controller.to_dict(user_controller.select_user_by_email(email))
-    return jsonify({'user': user}), 201    
+    return jsonify({'user': user}), 201
 
 
 @app.route('/admin/users', methods=['GET'])
@@ -467,6 +465,17 @@ def password_recovery_validate():
         redirect_url = GLOBAL_URL + '/password_recovery/validate'
         return jsonify({'error': ERR_PASSWORD}), 401
 
+
+## ERROR HANDLER
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return jsonify({'error': ERR_404}), 404
+
+
+@app.errorhandler(500)
+def page_not_found(e):
+    return jsonify({'error': 'Internal server error'}), 500  
 
 app.secret_key = '(*&*&322387he738220)(*(*22347657'
 
