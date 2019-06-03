@@ -62,7 +62,7 @@ def select_all():
     return cursor.fetchall()
 
 
-def select_all_available(capacity, begin, end, equipment):
+def select_all_available(capacity, begin, end, equipment, room_type):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
     equipment_sql = build_equipment_sql(equipment)
@@ -70,6 +70,11 @@ def select_all_available(capacity, begin, end, equipment):
     "(select room_id from (select * from Room ro JOIN Reservation re ON ro.id = re.room_id) " \
     "WHERE date_begin >= ? AND date_end <= ?) "\
     "AND r.capacity >= ?" + equipment_sql
+    print(room_type)
+    if room_type != 0:
+        type_sql = ' AND r.type = ' + str(room_type)
+        sql += type_sql
+    print(sql)    
     cursor.execute(sql, (begin, end, capacity,))
     return cursor.fetchall()
 
