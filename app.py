@@ -166,7 +166,7 @@ def reservation():
 
 @app.route('/admin/rooms', methods=['GET'])
 def get_rooms():
-    rooms = room_controller.room_to_list_of_dict(room_controller.select_all())
+    rooms = room_controller.room_to_list_of_dict(room_controller.select_all())   
     return jsonify({'rooms': rooms}), 200
 
 
@@ -177,8 +177,8 @@ def create_room():
     type = request.json['room']['type']
     capacity = request.json['room']['capacity']
     description = request.json['room']['description']
-    equipment_id = request.json['room']['equipment_id']
-    new_id = room_controller.create(name, type, capacity, description, equipment_id)
+    equipment = request.json['room']['equipment']
+    new_id = room_controller.create(name, type, capacity, description, equipment)
     return jsonify({'id': new_id}), 200
 
 
@@ -206,8 +206,8 @@ def update_room_by_id(room_id):
         type = room['type']
         capacity = room['capacity']
         description = room['description']
-        equipment_id = room['equipment_id']
-        room_controller.update(id, name, type, capacity, description, equipment_id)
+        equipment = room['equipment']
+        room_controller.update(id, name, type, capacity, description, equipment)
         return jsonify({'room': room}), 201
 
 
@@ -482,4 +482,4 @@ app.secret_key = '(*&*&322387he738220)(*(*22347657'
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
