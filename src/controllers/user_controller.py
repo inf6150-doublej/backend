@@ -31,7 +31,7 @@ def update(id, username, email, name, family_name, phone, address, admin):
                         'SET username=?, email=?, name=?, family_name=?, phone=?, '
                         'address=?, admin=?'
                         'WHERE id=?',
-                        (username, name, family_name, phone, address, email, admin, id,))
+                        (username, email, name, family_name, phone, address, admin, id,))
     connection.commit()
 
 
