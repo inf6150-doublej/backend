@@ -105,7 +105,7 @@ def is_authenticated(session):
 
 
 def send_unauthorized():
-    return jsonify({'error': ERR_UNAUTH})
+    return jsonify({'error': ERR_UNAUTH}), 401
 
 
 @app.route('/', methods=['GET'])
@@ -187,7 +187,7 @@ def create_room():
 def delete_room_by_id(room_id):
     rooms = room_controller.select_by_id(room_id)
     if rooms is None:
-        return jsonify({'error': 'Delete error'}), 204
+        return jsonify({'error': 'Delete error'}), 400
     else:
         room_controller.delete(room_id)
         return jsonify({'id': room_id}), 201
@@ -475,7 +475,8 @@ def page_not_found(e):
 
 @app.errorhandler(500)
 def page_not_found(e):
-    return jsonify({'error': 'Internal server error'}), 500  
+    return jsonify({'error': 'Internal server error'}), 500
+
 
 app.secret_key = '(*&*&322387he738220)(*(*22347657'
 
