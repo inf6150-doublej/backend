@@ -190,7 +190,7 @@ def delete_room_by_id(room_id):
         return jsonify({'error': 'Delete error'}), 204
     else:
         room_controller.delete(room_id)
-        return jsonify({'success': True}), 200
+        return jsonify({'id': room_id}), 201
 
 
 @app.route('/admin/rooms/<int:room_id>', methods=['PUT'])
@@ -208,7 +208,7 @@ def update_room_by_id(room_id):
         description = room['description']
         equipment_id = room['equipment_id']
         room_controller.update(id, name, type, capacity, description, equipment_id)
-        return jsonify({'rooms': rooms}), 200
+        return jsonify({'room': room}), 201
 
 
 @app.route('/admin/reservations', methods=['GET'])
