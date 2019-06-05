@@ -13,7 +13,7 @@ create table User (
 
 create table Room (
   id integer primary key,
-  name varchar(64),
+  name varchar(64) UNIQUE,
   type integer,
   capacity integer,
   description varchar(512),
