@@ -35,7 +35,12 @@ def select_all():
     reservations = to_list_of_dict(cursor.fetchall())
     return reservations
 
-
+def select_by_id(id):
+    connexion = Database.get_connection()
+    cursor = connexion.cursor()
+    sql = "SELECT * FROM Reservation s WHERE s.id == ? "
+    cursor.execute((sql), (id,))
+    return cursor.fetchone()
 
 def to_list_of_dict(reservations):
     reservation_list = []

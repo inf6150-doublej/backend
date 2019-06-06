@@ -223,42 +223,45 @@ def admin_manage_reservation(id):
         reservation_controller.delete(id)
         return jsonify({'id': id}), 201
     elif request.method == 'PUT':
-        data = request.json['data']
-        room = data['room']
-        user = data['user']
-        begin = data['begin']
-        end = data['end']
+        reservation = request.json['reservation']
+        room = reservation['room_id']
+        user = reservation['user_id']
+        begin = reservation['date_begin']
+        end = reservation['date_end']
         begin = begin[:24]
         end = end[:24]
         begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
         end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
         user_id = int(user['id'])
         room_id = int(room[0])
-        if request_data_is_invalid(user=user_id, room=room_id, id=id):
-            return jsonify({'error': ERR_BLANK}), 400
         reservation_controller.update(id, user_id, room_id, begin, end)
-        return jsonify({'succes':True }), 201
+        return jsonify({'reservation': reservation }), 201
     
 
 @app.route('/admin/reservations/create', methods=['POST'])
 def admin_create_reservation():
-    data = request.json['data']
-    room = data['room']
-    user = data['user']
-    begin = data['begin']
-    end = data['end']
+    reservation = request.json['reservation']
+    room = reservation['room_id']
+    user = reservation['user_id']
+    begin = reservation['date_begin']
+    end = reservation['date_end']
     begin = begin[:24]
     end = end[:24]
     begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
     end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
     user_id = int(user['id'])
     room_id = int(room[0])
-    reservation_controller.save(user_id, room_id, begin, end)
-    if request_data_is_invalid(query=user_id) and request_data_is_invalid(query=room_id):
-        return jsonify({'error': ERR_BLANK}), 204
-    reservation_controller.save(user_id, room_id, begin, end)
-    return jsonify({'succes':True }), 201
+    reservation= reservation_controller.save(user_id, room_id, begin, end)
+    return jsonify({'reservation':reservation}), 201
      
+
+@app.route('/admin/reservations/<int:id>', methods=['GET'])
+def get_reservation_by_id(id):
+    reservations = reservation_controller.select_by_id(id)
+    if reservations is None:
+        return jsonify({'error': 'failed to get this reservation'}), 204
+    else:
+        return jsonify({'reservations': reservations}), 200
 
 
 @app.route('/admin/rooms/<int:room_id>', methods=['GET'])

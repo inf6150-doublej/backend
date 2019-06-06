@@ -57,7 +57,17 @@ INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (1
 INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (15,'chez toi',7, 50,'c est donc ben beau chez vous',15);
 INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (16,'plaines abraham',8,100000,'party!',16);
 
-
+INSERT INTO Reservation (id, user_id, room_id, date_begin, date_end) VALUES (1,1,1,'Wed Jun 05 2019 12:45:00','Wed Jun 05 2019 13:45:00');
+INSERT INTO Reservation (id, user_id, room_id, date_begin, date_end) VALUES (2,2,2,'Wed Jun 05 2019 12:00:00','Wed Jun 05 2019 13:00:00');
+INSERT INTO Reservation (id, user_id, room_id, date_begin, date_end) VALUES (3,3,3,'Wed Jun 05 2019 13:45:00','Wed Jun 05 2019 14:45:00');
+INSERT INTO Reservation (id, user_id, room_id, date_begin, date_end) VALUES (4,4,4,'Wed Jun 05 2019 14:45:00','Wed Jun 05 2019 15:45:00');
+INSERT INTO Reservation (id, user_id, room_id, date_begin, date_end) VALUES (5,5,5,'Wed Jun 05 2019 15:45:00','Wed Jun 05 2019 16:45:00');
+INSERT INTO Reservation (id, user_id, room_id, date_begin, date_end) VALUES (6,6,6,'Wed Jun 05 2019 16:45:00','Wed Jun 05 2019 17:45:00');
+INSERT INTO Reservation (id, user_id, room_id, date_begin, date_end) VALUES (7,7,7,'Wed Jun 05 2019 17:45:00','Wed Jun 05 2019 18:45:00');
+INSERT INTO Reservation (id, user_id, room_id, date_begin, date_end) VALUES (8,8,8,'Wed Jun 05 2019 18:45:00','Wed Jun 05 2019 19:45:00');
+INSERT INTO Reservation (id, user_id, room_id, date_begin, date_end) VALUES (9,9,9,'Wed Jun 05 2019 19:45:00','Wed Jun 05 2019 20:45:00');
+INSERT INTO Reservation (id, user_id, room_id, date_begin, date_end) VALUES (10,10,10,'Wed Jun 05 2019 09:45:00','Wed Jun 05 2019 10:45:00');
+INSERT INTO Reservation (id, user_id, room_id, date_begin, date_end) VALUES (11,11,11,'Wed Jun 05 2019 10:45:00','Wed Jun 05 2019 11:45:00');
 PRAGMA foreign_keys=on;
 
 --SELECT * FROM Room;
