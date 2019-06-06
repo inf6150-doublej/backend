@@ -179,7 +179,7 @@ def create_room():
     description = request.json['room']['description']
     equipment = request.json['room']['equipment']
     new_id = room_controller.create(name, type, capacity, description, equipment)
-    return jsonify({'id': new_id}), 200
+    return jsonify({'id': new_id}), 201
 
 
 @app.route('/admin/rooms/<int:room_id>', methods=['DELETE'])
