@@ -53,7 +53,7 @@ def create(name, type, capacity, description, equipment):
 def select_by_id(id):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
-    sql = "SELECT * FROM Room r JOIN Equipment e on r.id = e.room_id "
+    sql = "SELECT * FROM Room r JOIN Equipment e on r.id =?"
     cursor.execute((sql), (id,))
     return cursor.fetchone()
 
@@ -61,7 +61,7 @@ def select_by_id(id):
 def select_by_type(type):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
-    sql = "SELECT * FROM Room r WHERE r.type == ? "
+    sql = "SELECT * FROM Room r WHERE r.type =? "
     cursor.execute((sql), (type,))
     return cursor.fetchall()
 
