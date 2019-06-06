@@ -280,9 +280,10 @@ def login():
         return jsonify({'error': ERR_FORM}), 400
 
     user = user_controller.to_dict(user_controller.select_user_by_email(email))
-    # user = user_controller.select_user_by_email(email)
+
     if user is None:
         return jsonify({'error': ERR_PASSWORD}), 401
+
     salt = user_controller.get_id_salt(user['id'])
     hashed_password = hashlib.sha512(str(password + salt).encode('utf-8')).hexdigest()
     if hashed_password == user_controller.get_id_hash(user['id']):
@@ -319,7 +320,8 @@ def register():
             id_session = uuid.uuid4().hex
             session_controller.save(id_session, email)
             session['id'] = id_session
-            return jsonify({'user':user}), 201
+            new_user = user_controller.to_dict(user_controller.select_user_by_email(email))
+            return jsonify({'user':new_user}), 201
         # Unique constraint must be respected
         except IntegrityError:
             print('unique user')
