@@ -40,22 +40,22 @@ INSERT INTO Equipment(id, room_id, computer, white_board, sound_system, projecto
 
 --type de room
 -- 1 arena 2 auditorium 3 bar 4 universite 5 theatre 6 centre culturel 7 maison 8 exterieur
-INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (1,'metropolis',2,1000,'receptif et comprehnsible',1);
-INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (2,'spectrum',2, 1500,'aceeuillant et genereux',2);
-INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (3,'centre bell',1, 26000,'go habs go',3);
-INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (4,'centre videotron',1, 20000,'lets go nordique',4);
-INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (5,'foufounes electriques',3,500,'veux tu fourrer a soir',5);
-INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (6,'salon daome',3, 200,'boom boom',6);
-INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (7,'taco bar',3,350,'prend tu une tite frette?',7);
-INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (8,'pk-310',4,50,'code moi ca mon grand',8);
-INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (9,'pk-620',4, 30,'etre ou ne pas etre',9);
-INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (10,'p-420',4,200,'on fait de la gestion yeahh',10);
-INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (11,'saint-siboire',3,100,'sua brosse',11);
-INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (12,'theatre du nouveau monde',5, 200, 'nice',12);
-INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (13,'theatre national',5,300,'les meilleurs artistede chez nous',13);
-INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (14,'centre culturel marcel',6,200,'luminuex et chaleureux',14);
-INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (15,'chez toi',7, 50,'c est donc ben beau chez vous',15);
-INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (16,'plaines abraham',8,100000,'party!',16);
+INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (1,'Metropolis',2,1000,'Perfectly located on Ste. Catherine St. in the heart of the Quartier des Spectacles, MTELUS spent previous incarnations as an opera house, playhouse, movie theatre, discotheque and even an ice skating rink! Now a genuine temple of music, it has hosted the biggest artists from home and abroad, from the great Sarah Bernhardt to Adele, from Prince to Lady Gaga.',1);
+INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (2,'Spectrum',2,500,'The Spectrum opened on October 17, 1982, as the Alouette Theatre, it was briefly renamed Club Montreal before receiving its popular name.',2);
+INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (3,'Bell Centre',1,800,'Since its inauguration in 1996 under the name Molson Centre, the Centre Bell remains the centre stage for entertainment and business events in Montreal. The Centre Bell incorporates cutting-edge technology to ensure the perfect ambience when it comes to sound, comfort, catering and otherwise for any event, whatever its magnitude.',3);
+INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (4,'Videotron Centre',1,200,'. Throughout the site, you can experience the warm, cozy atmosphere of chalets, seamlessly blended with sleek, chic spaces with materials like steel and wood. The metal coating used in construction reflects light, like snow or the waves on the river, while the blue and white colours throughout pay tribute to the world-famous Quebec winter.',4);
+INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (5,'Foufounes Electriques',3,615,'Rental includes: a sound technician, a lighting technician (Main Show Room only), a door person, all bar staff and security.',5);
+INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (6,'Salon Daome',3,200,'Laid-back nightclub with a roster of international DJs spinning electronic music, plus theme nights.',6);
+INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (7,'Taco Bar',3,350,'This restaurant is located in Monkland village. The restaurant has a lot of open space.  Plenty of room to add more tables if needed.',7);
+INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (8,'PK-310',4,50,'Students can rent out this room, free of charge, provided they have their student card with them.',8);
+INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (9,'PK-620',4,30,'Students can rent out this room, free of charge, provided they have their student card with them.',9);
+INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (10,'PK-420',4,200,'Students can rent out this room, free of charge, provided they have their student card with them.',10);
+INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (11,'Saint-Siboire',3,100,'With a constantly evolving selection of beers, a bistro-style food menu and a range of scotchs and whiskeys, our mission is to make you discover and appreciate the brewing world in all its facets. You can even satisfy your seafood appetite with one of the best Fish & Chips in the province.',11);
+INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (12,'Theatre du nouveau monde',5,200, 'The TNM .... a place of prestige for your small and big events! A unique and original atmosphere! Stamp and style! An incredible service! A successful event!',12);
+INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (13,'Theatre National',5,300,'Make sure you have a place to sit with your friends on Fridays and Saturdays during POP nights, by reserving our new VIP corner! In this zone only, you can purchase alcohol by the bottle.  We also make sure you get into the venue fast as well as receiving two complimentary entries.',13);
+INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (14,'Centre culturel Marcel',6,200,'The Town of Saint-Bruno-de-Montarville is partnering with Productions du 16 to present professional shows of all kinds at the Marcel-Dulude Center, be it humor, theater or song.',14);
+INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (15,'Home',7,50,'The only place in the world that feels like home, because, it is. Unfortunately, this room cannot be rented, as it is my home.',15);
+INSERT INTO Room (id, name, type, capacity, description, equipment_id) VALUES (16,'Plaines Abraham',8,1000,'One hundred and three hectares of meadow and grassy knolls, decked with flowers or covered with snow, are there for residents and visitors to enjoy.',16);
 
 
 PRAGMA foreign_keys=on;
