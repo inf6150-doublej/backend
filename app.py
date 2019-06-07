@@ -18,7 +18,7 @@ app = Flask(__name__)
 scheduler = BackgroundScheduler()
 scheduler.start()
 
-
+# Load e-mail configuration
 def config_mail():
     config_list = []
     current_path = os.path.abspath(os.path.dirname(__file__))
@@ -59,21 +59,15 @@ config = {
     'SECRET_KEY': '...'
 }
 CORS(app, supports_credentials=True)
-#TODO white list in CORS
 
+@app.route('/', methods=['GET'])
+def start():
+    return jsonify({"Allo": "salut"}), 200
 
-# @app.teardown_appcontext
-# def close_connection(exception):
-#     print('exception')
-#     print(exception)
-#     Database.disconnect()
+#############################
+# AUTHENTICATION
 
-
-@app.errorhandler(404)
-def page_not_found():
-    return jsonify({'error': ERR_404}), 404
-
-
+# Validate if user is authenticated
 def authentication_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -83,6 +77,7 @@ def authentication_required(f):
     return decorated
 
 
+# Validate if user is an administrator.  Return unauthorized error if not
 def admin_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -92,6 +87,7 @@ def admin_required(f):
     return decorated 
 
 
+# Validate if user is an administrator
 def is_admin(session):
     user = session_controller.select_user_by_session_id(session['id'])
     if user is None : return False
@@ -99,177 +95,15 @@ def is_admin(session):
     if is_admin: return True 
     return False
 
-
+# Validate if user is authenticated
 def is_authenticated(session):
     return 'id' in session
 
-
+# Return unauthorized error
 def send_unauthorized():
     return jsonify({'error': ERR_UNAUTH}), 401
 
-
-@app.route('/', methods=['GET'])
-def start():
-    return jsonify({"alo": "salut"}), 200
-
-
-@app.route('/getuser', methods=['POST'])
-def get_user():
-    if not is_authenticated(session):
-        return jsonify({'user': None}), 200   
-    user = session_controller.select_user_by_session_id(session['id'])
-    return jsonify({'user': user}), 200
-
-
-@app.route('/search', methods=['POST'])
-def search_rooms():
-    data = request.json['data']
-    begin = data['begin']
-    end = data['end']
-    capacity = data['capacity']
-    equipment = data['equipment']
-    room_type = int(data['type'])
-    if request_data_is_invalid(query=data):
-        return jsonify({'error': ERR_BLANK}), 204
-    begin = begin[:24]
-    end = end[:24]
-    begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
-    end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
-    rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available(capacity, begin, end, equipment, room_type))
-    return jsonify({'rooms': rooms}), 200
-
-
-@app.route('/reservation', methods=['POST'])
-def reservation():
-    data = request.json['data']
-    room = data['room']
-    user = data['user']
-    begin = data['begin']
-    end = data['end']
-    if(user is None):
-        return jsonify({'error': 'Missing User in form'}), 400
-    begin = begin[:24]
-    end = end[:24]
-    begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
-    end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
-    user_id = int(user['id'])
-    room_id = int(room['id'])
-    try:
-        reservation_id = reservation_controller.save(user_id, room_id, begin, end)
-        scheduler.add_job(lambda: reservation_controller.delete(reservation_id), 'cron', hour=end.hour, minute=end.minute)
-        send_email(user['email'], MSG_MAIL_RESERVATION_SUCCESS_SUBJECT, MSG_MAIL_RESERVATION_SUCCESS_BODY)
-        return jsonify({'success':True}), 201
-    except Error:
-        return jsonify({'error': 'save reservation error'}), 500
-
-
-
-@app.route('/admin/rooms', methods=['GET'])
-def get_rooms():
-    rooms = room_controller.room_to_list_of_dict(room_controller.select_all())   
-    return jsonify({'rooms': rooms}), 200
-
-
-@app.route('/admin/rooms', methods=['POST'])
-@admin_required
-def create_room():  
-    name = request.json['room']['name']
-    type = request.json['room']['type']
-    capacity = request.json['room']['capacity']
-    description = request.json['room']['description']
-    equipment = request.json['room']['equipment']
-    new_id = room_controller.create(name, type, capacity, description, equipment)
-    return jsonify({'id': new_id}), 201
-
-
-@app.route('/admin/rooms/<int:room_id>', methods=['DELETE'])
-@admin_required
-def delete_room_by_id(room_id):
-    rooms = room_controller.select_by_id(room_id)
-    if rooms is None:
-        return jsonify({'error': 'Delete error'}), 400
-    else:
-        room_controller.delete(room_id)
-        return jsonify({'id': room_id}), 201
-
-
-@app.route('/admin/rooms/<int:room_id>', methods=['PUT'])
-@admin_required
-def update_room_by_id(room_id):
-    rooms = room_controller.select_by_id(room_id)
-    if rooms is None:
-        return jsonify({'error': 'failed to update this room'}), 204
-    else:        
-        id = room_id
-        room = request.json['room']
-        name = room['name']
-        type = room['type']
-        capacity = room['capacity']
-        description = room['description']
-        equipment = room['equipment']
-        room_controller.update(id, name, type, capacity, description, equipment)
-        return jsonify({'room': room}), 201
-
-
-@app.route('/admin/reservations', methods=['GET'])
-def admin_select_all_reservations():
-    reservations = reservation_controller.select_all()
-    return jsonify({'reservations':reservations}), 200
-
-
-@app.route('/admin/reservations/<int:id>', methods=['PUT', 'DELETE'])
-def admin_manage_reservation(id):
-    if request.method == 'DELETE':
-        reservation_controller.delete(id)
-        return jsonify({'id': id}), 201
-    elif request.method == 'PUT':
-        data = request.json['data']
-        room = data['room']
-        user = data['user']
-        begin = data['begin']
-        end = data['end']
-        begin = begin[:24]
-        end = end[:24]
-        begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
-        end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
-        user_id = int(user['id'])
-        room_id = int(room[0])
-        if request_data_is_invalid(user=user_id, room=room_id, id=id):
-            return jsonify({'error': ERR_BLANK}), 400
-        reservation_controller.update(id, user_id, room_id, begin, end)
-        return jsonify({'succes':True }), 201
-    
-
-@app.route('/admin/reservations/create', methods=['POST'])
-def admin_create_reservation():
-    data = request.json['data']
-    room = data['room']
-    user = data['user']
-    begin = data['begin']
-    end = data['end']
-    begin = begin[:24]
-    end = end[:24]
-    begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
-    end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
-    user_id = int(user['id'])
-    room_id = int(room[0])
-    reservation_controller.save(user_id, room_id, begin, end)
-    if request_data_is_invalid(query=user_id) and request_data_is_invalid(query=room_id):
-        return jsonify({'error': ERR_BLANK}), 204
-    reservation_controller.save(user_id, room_id, begin, end)
-    return jsonify({'succes':True }), 201
-     
-
-
-@app.route('/admin/rooms/<int:room_id>', methods=['GET'])
-def get_room_by_id(room_id):
-    rooms = room_controller.select_by_id(room_id)
-    if rooms is None:
-        return jsonify({'error': 'failed to get this room'}), 204
-    else:
-        return jsonify({'rooms': rooms}), 200
-
-
+# User login
 @app.route('/login', methods=['POST'])
 def login():
     email = request.json['email']
@@ -294,7 +128,7 @@ def login():
     else:
         return jsonify({'error': ERR_PASSWORD}), 401
 
-
+# Register a user
 @app.route('/register', methods=['POST'])
 def register():
     user = request.json['user']
@@ -335,7 +169,7 @@ def register():
             session['id'] = id_session
             return jsonify({'user':user}), 201
 
-
+# End user session
 @app.route('/logout', methods=['POST'])
 def logout():
     if 'id' in session:
@@ -344,56 +178,32 @@ def logout():
         session_controller.delete(id_session)
     return jsonify({'success': True}), 200
 
-
+# Check if data eis invalid
 def request_data_is_invalid(**kwargs):
     for value in kwargs.items():
         if value == '' or value is None:
             return True
     return False
 
+#############################
+# USER
 
-@app.route('/recoverpassword', methods=['POST'])
-def password_recovery():
-    smtp_response_ok = send_recovery_email(request.json['email'])
-    if smtp_response_ok:
-        return jsonify({'msg': MSG_MAIL_SENT_RECOVERY}), 200
-    else:
-        return jsonify({'error': ERR_SERVOR}), 500
+# Get user information
+@app.route('/getuser', methods=['POST'])
+def get_user():
+    if not is_authenticated(session):
+        return jsonify({'user': None}), 200   
+    user = session_controller.select_user_by_session_id(session['id'])
+    return jsonify({'user': user}), 200
 
-
-def send_recovery_email(user_email):
-    user = user_controller.select_user_by_email(user_email)
-    if user:
-        token = generate_token()
-        salt = user[7]
-        hash_password = hashlib.sha512(str(token + salt).encode('utf-8')).hexdigest()
-        user_controller.update_password(int(user[0]), hash_password)
-        subject = MSG_MAIL_RECOVER_SUBJECT
-        msg = Message(subject, recipients=[user_email])
-        msg.body = MSG_MAIL_RECOVER_BODY + token
-        try:
-            mail.send(msg)
-        except SMTPException:
-            return False
-        return True
-    # return true even if email was not sent
-    return True
-
-
-def send_email(recipient, subject, message):
-    date = datetime.datetime.now().strftime('%Y-%m-%d')
-    msg = Message(subject, recipients=[recipient])
-    msg.body = message
-    mail.send(msg)
-
-
+# Generate password
 def generate_token():
     # generate 5 random number
     list_of_ints = random.sample(range(1, 10), 5)
     new_password = ''.join(str(x) for x in list_of_ints)
     return new_password
 
-
+# Update of delete one user
 @app.route('/admin/users/<int:id>', methods=['DELETE', 'PUT'])
 def admin_manage_user(id):
     if request.method == 'DELETE':
@@ -414,7 +224,7 @@ def admin_manage_user(id):
         user_controller.update(id, username, email, name, family_name, phone, address, admin)
         return jsonify({'user': user}), 201
    
-
+# Create a user
 @app.route('/admin/users/create', methods=['POST'])
 def admin_create_user():
     user = request.json['user']
@@ -433,12 +243,13 @@ def admin_create_user():
     return jsonify({'user': user}), 201
 
 
+# Get all users list
 @app.route('/admin/users', methods=['GET'])
 def admin_select_all_users():
     users = user_controller.select_all()
     return jsonify({'users':users}), 200
 
-
+# Recover password
 @app.route('/password_recovery/validate', methods=['POST'])
 def password_recovery_validate():
     username = request.json['username']
@@ -467,14 +278,211 @@ def password_recovery_validate():
         redirect_url = GLOBAL_URL + '/password_recovery/validate'
         return jsonify({'error': ERR_PASSWORD}), 401
 
+# Send recovery e-mail and return error if send does not work
+@app.route('/recoverpassword', methods=['POST'])
+def password_recovery():
+    smtp_response_ok = send_recovery_email(request.json['email'])
+    if smtp_response_ok:
+        return jsonify({'msg': MSG_MAIL_SENT_RECOVERY}), 200
+    else:
+        return jsonify({'error': ERR_SERVOR}), 500
 
-## ERROR HANDLER
+# Send recovery e-mail
+def send_recovery_email(user_email):
+    user = user_controller.select_user_by_email(user_email)
+    if user:
+        token = generate_token()
+        salt = user[7]
+        hash_password = hashlib.sha512(str(token + salt).encode('utf-8')).hexdigest()
+        user_controller.update_password(int(user[0]), hash_password)
+        subject = MSG_MAIL_RECOVER_SUBJECT
+        msg = Message(subject, recipients=[user_email])
+        msg.body = MSG_MAIL_RECOVER_BODY + token
+        try:
+            mail.send(msg)
+        except SMTPException:
+            return False
+        return True
+    # return true even if email was not sent
+    return True
 
+#############################
+# SEARCH AND RESERVATION
+
+# Search a room
+@app.route('/search', methods=['POST'])
+def search_rooms():
+    data = request.json['data']
+    begin = data['begin']
+    end = data['end']
+    capacity = data['capacity']
+    equipment = data['equipment']
+    room_type = int(data['type'])
+    if request_data_is_invalid(query=data):
+        return jsonify({'error': ERR_BLANK}), 204
+    begin = begin[:24]
+    end = end[:24]
+    begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
+    end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
+    rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available(capacity, begin, end, equipment, room_type))
+    return jsonify({'rooms': rooms}), 200
+
+# Make a reservation
+@app.route('/reservation', methods=['POST'])
+def reservation():
+    data = request.json['data']
+    room = data['room']
+    user = data['user']
+    begin = data['begin']
+    end = data['end']
+    if(user is None):
+        return jsonify({'error': 'Missing User in form'}), 400
+    begin = begin[:24]
+    end = end[:24]
+    begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
+    end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
+    user_id = int(user['id'])
+    room_id = int(room['id'])
+    try:
+        reservation_id = reservation_controller.save(user_id, room_id, begin, end)
+        scheduler.add_job(lambda: reservation_controller.delete(reservation_id), 'cron', hour=end.hour, minute=end.minute)
+        send_email(user['email'], MSG_MAIL_RESERVATION_SUCCESS_SUBJECT, MSG_MAIL_RESERVATION_SUCCESS_BODY)
+        return jsonify({'success':True}), 201
+    except Error:
+        return jsonify({'error': 'save reservation error'}), 500
+
+# List of all reservations
+@app.route('/admin/reservations', methods=['GET'])
+def admin_select_all_reservations():
+    reservations = reservation_controller.select_all()
+    return jsonify({'reservations':reservations}), 200
+
+# Update of delete one reservation
+@app.route('/admin/reservations/<int:id>', methods=['PUT', 'DELETE'])
+def admin_manage_reservation(id):
+    if request.method == 'DELETE':
+        reservation_controller.delete(id)
+        return jsonify({'id': id}), 201
+    elif request.method == 'PUT':
+        data = request.json['data']
+        room = data['room']
+        user = data['user']
+        begin = data['begin']
+        end = data['end']
+        begin = begin[:24]
+        end = end[:24]
+        begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
+        end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
+        user_id = int(user['id'])
+        room_id = int(room[0])
+        if request_data_is_invalid(user=user_id, room=room_id, id=id):
+            return jsonify({'error': ERR_BLANK}), 400
+        reservation_controller.update(id, user_id, room_id, begin, end)
+        return jsonify({'succes':True }), 201
+    
+# Create a reservation by an admin
+@app.route('/admin/reservations/create', methods=['POST'])
+def admin_create_reservation():
+    data = request.json['data']
+    room = data['room']
+    user = data['user']
+    begin = data['begin']
+    end = data['end']
+    begin = begin[:24]
+    end = end[:24]
+    begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
+    end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
+    user_id = int(user['id'])
+    room_id = int(room[0])
+    reservation_controller.save(user_id, room_id, begin, end)
+    if request_data_is_invalid(query=user_id) and request_data_is_invalid(query=room_id):
+        return jsonify({'error': ERR_BLANK}), 204
+    reservation_controller.save(user_id, room_id, begin, end)
+    return jsonify({'succes':True }), 201
+     
+
+#############################
+# ROOMS
+
+# Get all rooms
+@app.route('/admin/rooms', methods=['GET'])
+def get_rooms():
+    rooms = room_controller.room_to_list_of_dict(room_controller.select_all())   
+    return jsonify({'rooms': rooms}), 200
+
+# Create a room
+@app.route('/admin/rooms', methods=['POST'])
+@admin_required
+def create_room():  
+    name = request.json['room']['name']
+    type = request.json['room']['type']
+    capacity = request.json['room']['capacity']
+    description = request.json['room']['description']
+    equipment = request.json['room']['equipment']
+    new_id = room_controller.create(name, type, capacity, description, equipment)
+    return jsonify({'id': new_id}), 201
+
+# Delete a room
+@app.route('/admin/rooms/<int:room_id>', methods=['DELETE'])
+@admin_required
+def delete_room_by_id(room_id):
+    rooms = room_controller.select_by_id(room_id)
+    if rooms is None:
+        return jsonify({'error': 'Delete error'}), 400
+    else:
+        room_controller.delete(room_id)
+        return jsonify({'id': room_id}), 201
+
+# Update a room
+@app.route('/admin/rooms/<int:room_id>', methods=['PUT'])
+@admin_required
+def update_room_by_id(room_id):
+    rooms = room_controller.select_by_id(room_id)
+    if rooms is None:
+        return jsonify({'error': 'failed to update this room'}), 204
+    else:        
+        id = room_id
+        room = request.json['room']
+        name = room['name']
+        type = room['type']
+        capacity = room['capacity']
+        description = room['description']
+        equipment = room['equipment']
+        room_controller.update(id, name, type, capacity, description, equipment)
+        return jsonify({'room': room}), 201
+
+# Get one room
+@app.route('/admin/rooms/<int:room_id>', methods=['GET'])
+def get_room_by_id(room_id):
+    rooms = room_controller.select_by_id(room_id)
+    if rooms is None:
+        return jsonify({'error': 'failed to get this room'}), 204
+    else:
+        return jsonify({'rooms': rooms}), 200
+
+# Send an e-mail
+def send_email(recipient, subject, message):
+    date = datetime.datetime.now().strftime('%Y-%m-%d')
+    msg = Message(subject, recipients=[recipient])
+    msg.body = message
+    mail.send(msg)
+
+
+#############################
+# ERROR HANDLER
+
+# For page not found 404 error
+@app.errorhandler(404)
+def page_not_found():
+    return jsonify({'error': ERR_404}), 404
+
+# For page not found 404 error
 @app.errorhandler(404)
 def page_not_found(e):
     return jsonify({'error': ERR_404}), 404
 
 
+# For Internal server error 500
 @app.errorhandler(500)
 def page_not_found(e):
     return jsonify({'error': 'Internal server error'}), 500
