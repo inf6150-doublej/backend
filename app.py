@@ -14,6 +14,10 @@ from flask_cors import CORS
 from src.controllers import room_controller, user_controller, session_controller, reservation_controller, feedback_controller
 from src.constants.constants import *
 from flask import abort
+from urllib.request import Request, urlopen
+from xml.dom import minidom
+import requests
+from xml.etree import ElementTree
 
 
 app = Flask(__name__)
@@ -331,7 +335,6 @@ def feedback():
 @app.route('/search', methods=['POST'])
 def search_rooms():
     data = request.json['data']    
-    print((str)(data))
     begin = data['begin']
     end = data['end']
     capacity = data['capacity']
@@ -345,11 +348,25 @@ def search_rooms():
     end = end[:24]
     begin = datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
     end = datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
-    rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available(location,capacity, begin, end, equipment, room_type))
+
+    url= 'https://geocoder.ca/?locate=j4j1m1&geoit=XML'
+    # print(r)
+    req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    xml = urlopen(req)
+    print(xml)
+    dom = minidom.parse(xml)
+    print(dom)
+    # geodata = dom.getElementsByTagName("geodata")
+    prov = dom.getElementsByTagName("prov")
+    provText = prov[0].firstChild.nodeValue
+    # print(geodata)
+    print(prov)
+    print(provText)
+    rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available(location, capacity, begin, end, equipment, room_type))
     nothingFound = False
 
     if len(rooms) == 0:
-        rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available_capacityexceeded(location,capacity, begin, end, equipment, room_type))
+        rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available_capacityexceeded(location, capacity, begin, end, equipment, room_type))
         nothingFound = True
 
     return jsonify({'rooms': rooms, 'nothingFound': nothingFound}), 200
