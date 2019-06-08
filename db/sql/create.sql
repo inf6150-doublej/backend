@@ -19,7 +19,9 @@ create table Room (
   description varchar(512),
   city varchar(100),
   postalCode varchar(6),
+  province varchar(20),
   equipment_id integer,
+ 
   FOREIGN KEY (equipment_id) REFERENCES Equipment(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
