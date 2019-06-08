@@ -224,16 +224,16 @@ def admin_manage_reservation(id):
         return jsonify({'id': id}), 201
     elif request.method == 'PUT':
         reservation = request.json['reservation']
-        room = reservation['room_id']
-        user = reservation['user_id']
-        begin = reservation['date_begin']
-        end = reservation['date_end']
+        room_id = reservation['room_id']
+        user_id = reservation['user_id']
+        begin = reservation['begin']
+        end = reservation['end']
         begin = begin[:24]
         end = end[:24]
         begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
         end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
-        user_id = int(user['id'])
-        room_id = int(room[0])
+        user_id = int(user_id)
+        room_id = int(room_id)
         reservation_controller.update(id, user_id, room_id, begin, end)
         return jsonify({'reservation': reservation }), 201
     
@@ -241,16 +241,16 @@ def admin_manage_reservation(id):
 @app.route('/admin/reservations/create', methods=['POST'])
 def admin_create_reservation():
     reservation = request.json['reservation']
-    room = reservation['room_id']
-    user = reservation['user_id']
-    begin = reservation['date_begin']
-    end = reservation['date_end']
+    room_id = reservation['room_id']
+    user_id = reservation['user_id']
+    begin = reservation['begin']
+    end = reservation['end']
     begin = begin[:24]
     end = end[:24]
     begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
     end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
-    user_id = int(user['id'])
-    room_id = int(room[0])
+    user_id = int(user_id)
+    room_id = int(room_id)
     reservation= reservation_controller.save(user_id, room_id, begin, end)
     return jsonify({'reservation':reservation}), 201
      

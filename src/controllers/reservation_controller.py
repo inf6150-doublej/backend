@@ -15,11 +15,13 @@ def save(user_id, room_id, begin, end):
 
 def update(id, user_id, room_id, begin, end):
     connection = Database.get_connection()
-    connection.execute('UPDATE Reservation '
-                        'SET user_id=?, room_id=?, date_begin=?, date_end=?, '
-                        'WHERE id=?',
-                        (user_id, room_id, begin, end, id))
+    cursor = connection.cursor()
+    sql_query = "UPDATE Reservation " \
+                "SET user_id=?, room_id=?, date_begin=?, date_end=? " \
+                "WHERE id=?"
+    cursor.execute(sql_query, (user_id, room_id, begin, end, id))
     connection.commit()
+    return cursor.fetchone()
 
 
 def delete(id):
