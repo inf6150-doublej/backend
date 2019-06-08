@@ -474,7 +474,7 @@ def get_rooms_usage(selected_date):
     
     selected_date = datetime.strptime(selected_date, "%Y-%m-%d").date()
     stats = room_controller.usage_to_dict(room_controller.select_usage(selected_date))   
-    return jsonify(stats), 200
+    return jsonify({'stats': stats}), 200
 
 
 #############################
