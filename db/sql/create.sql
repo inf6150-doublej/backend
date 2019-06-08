@@ -17,6 +17,8 @@ create table Room (
   type integer,
   capacity integer,
   description varchar(512),
+  city varchar(100),
+  postalCode varchar(6),
   equipment_id integer,
   FOREIGN KEY (equipment_id) REFERENCES Equipment(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -48,6 +50,14 @@ create table Equipment (
   sound_system boolean,
   projector boolean,
   FOREIGN KEY (room_id) REFERENCES Room(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+create table Feedback (
+    id integer primary key,
+    email varchar(64),
+    name varchar(64),
+    publicationDate Date,
+    comment varchar(1000)
 );
 
 PRAGMA foreign_keys=on;

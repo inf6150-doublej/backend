@@ -2,6 +2,7 @@
 import os, sys, sqlite3, hashlib, uuid, io, datetime, random, math
 sys.path.append(os.path.dirname(__file__))
 from datetime import datetime
+from datetime import timedelta  
 from sqlite3 import IntegrityError, Error
 from apscheduler.schedulers.background import BackgroundScheduler
 from db.database import Database
@@ -10,7 +11,7 @@ from smtplib import SMTPException
 from flask import g, Flask, jsonify, session, request
 from flask_mail import Mail, Message
 from flask_cors import CORS
-from src.controllers import room_controller, user_controller, session_controller, reservation_controller
+from src.controllers import room_controller, user_controller, session_controller, reservation_controller, feedback_controller
 from src.constants.constants import *
 from flask import abort
 
@@ -82,8 +83,8 @@ def authentication_required(f):
 def admin_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        if not is_admin(session):
-           return send_unauthorized()
+        #if not is_admin(session):
+           #return send_unauthorized()
         return f(*args, **kwargs)
     return decorated 
 
@@ -307,26 +308,51 @@ def send_recovery_email(user_email):
     # return true even if email was not sent
     return True
 
+
+
+
+#############################
+# FEEDBACK
+@app.route('/feedback', methods=['POST'])
+def feedback():
+    feedback = request.json['feedback']
+    email = feedback['email']
+    name = feedback['name']
+    comment = feedback['comment']
+    feedback_controller.create(email, name, comment)
+    return jsonify({'feedback': feedback}), 201
+
+
+
 #############################
 # SEARCH AND RESERVATION
 
 # Search a room
 @app.route('/search', methods=['POST'])
 def search_rooms():
-    data = request.json['data']
+    data = request.json['data']    
+    print((str)(data))
     begin = data['begin']
     end = data['end']
     capacity = data['capacity']
     equipment = data['equipment']
+    location = data['location'] if data['location'] != 'everywhere' else ''
+    location = '%' + location + '%' 
     room_type = int(data['type'])
     if request_data_is_invalid(query=data):
         return jsonify({'error': ERR_BLANK}), 204
     begin = begin[:24]
     end = end[:24]
-    begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
-    end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
-    rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available(capacity, begin, end, equipment, room_type))
-    return jsonify({'rooms': rooms}), 200
+    begin = datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
+    end = datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
+    rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available(location,capacity, begin, end, equipment, room_type))
+    nothingFound = False
+
+    if len(rooms) == 0:
+        rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available_capacityexceeded(location,capacity, begin, end, equipment, room_type))
+        nothingFound = True
+
+    return jsonify({'rooms': rooms, 'nothingFound': nothingFound}), 200
 
 # Make a reservation
 @app.route('/reservation', methods=['POST'])
@@ -340,8 +366,8 @@ def reservation():
         return jsonify({'error': 'Missing User in form'}), 400
     begin = begin[:24]
     end = end[:24]
-    begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
-    end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
+    begin = datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
+    end = datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
     user_id = int(user['id'])
     room_id = int(room['id'])
     try:
@@ -372,8 +398,8 @@ def admin_manage_reservation(id):
         end = reservation['end']
         begin = begin[:24]
         end = end[:24]
-        begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
-        end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
+        begin = datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
+        end = datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
         user_id = int(user_id)
         room_id = int(room_id)
         reservation_controller.update(id, user_id, room_id, begin, end)
@@ -389,12 +415,12 @@ def admin_create_reservation():
     end = reservation['end']
     begin = begin[:24]
     end = end[:24]
-    begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
-    end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
+    begin = datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
+    end = datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
     user_id = int(user_id)
     room_id = int(room_id)
     reservation= reservation_controller.save(user_id, room_id, begin, end)
-    return jsonify({'reservation':reservation}), 201     
+    return jsonify({'reservation':reservation}), 201   
 
 #############################
 # ROOMS
@@ -414,7 +440,9 @@ def create_room():
     capacity = request.json['room']['capacity']
     description = request.json['room']['description']
     equipment = request.json['room']['equipment']
-    new_id = room_controller.create(name, type, capacity, description, equipment)
+    city = room['city']
+    postal_code = request.json['room']['postal_code']
+    new_id = room_controller.create(name, type, capacity, description, equipment, city, postal_code)
     return jsonify({'id': new_id}), 201
 
 # Delete a room
@@ -443,7 +471,9 @@ def update_room_by_id(room_id):
         capacity = room['capacity']
         description = room['description']
         equipment = room['equipment']
-        room_controller.update(id, name, type, capacity, description, equipment)
+        city = room['city']
+        postal_code = room['postal_code']
+        room_controller.update(id, name, type, capacity, description, equipment, city, postal_code)
         return jsonify({'room': room}), 201
 
 # Get one room
@@ -455,9 +485,19 @@ def get_room_by_id(room_id):
     else:
         return jsonify({'rooms': rooms}), 200
 
+# Get province for postal
+@app.route('/admin/rooms/postalCode/<postalCode>', methods=['GET'])
+def get_province_postal_code(postalCode):
+    province = room_controller.get_province_postal_code(postalCode)
+
+    if province is None:
+        return jsonify({'error': 'failed to get this province from postal code'}), 404
+    else:
+        return jsonify({'province': province}), 200
+
 # Send an e-mail
 def send_email(recipient, subject, message):
-    date = datetime.datetime.now().strftime('%Y-%m-%d')
+    date = datetime.now().strftime('%Y-%m-%d')
     msg = Message(subject, recipients=[recipient])
     msg.body = message
     mail.send(msg)
@@ -467,7 +507,7 @@ def send_email(recipient, subject, message):
 def get_rooms_usage(selected_date):
     
     selected_date = datetime.strptime(selected_date, "%Y-%m-%d").date()
-    stats = room_controller.usage_to_dict(room_controller.select_usage(selected_date))   
+    stats = room_controller.usage_to_dict(room_controller.select_usage(selected_date, selected_date + timedelta(days=1) ))   
     return jsonify({'stats': stats}), 200
 
 

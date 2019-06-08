@@ -16,13 +16,13 @@ def delete(id):
     connexion.commit()
 
 
-def update(id, name, type, capacity, description, equipment):
+def update(id, name, type, capacity, description, equipment, city, postal_code):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
     sql_query = "UPDATE Room " \
-        "SET name=?, type=?, capacity=?, description=? "\
+        "SET name=?, type=?, capacity=?, description=?, city=?, postalCode=? "\
         "WHERE id=?"
-    cursor.execute(sql_query, (name, type, capacity, description, id,))
+    cursor.execute(sql_query, (name, type, capacity, description, city, postal_code, id,))
     sql_query = "UPDATE Equipment " \
         "SET computer=?, white_board=?, sound_system=?, " \
         "projector=?" \
@@ -32,14 +32,13 @@ def update(id, name, type, capacity, description, equipment):
     return cursor.fetchone()
 
 
-def create(name, type, capacity, description, equipment):
+def create(name, type, capacity, description, equipment, city, postal_code):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
     cursor.execute(
-        "INSERT INTO Room(name, type, capacity, "
-        "description) "
-        "VALUES(?, ?, ?, ?)",
-        (name, type, capacity, description,))
+        "INSERT INTO Room(name, type, capacity, description, city, postalCode) "
+        "VALUES(?, ?, ?, ?, ?, ?)",
+        (name, type, capacity, description, city, postal_code))
     room_id = cursor.lastrowid
     cursor.execute(
         "INSERT INTO Equipment(room_id, computer, white_board, "
@@ -73,17 +72,34 @@ def select_all():
     return cursor.fetchall()
 
 
-def select_all_available(capacity, begin, end, equipment, room_type):
+def select_all_available(location, capacity, begin, end, equipment, room_type):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
     equipment_sql = build_equipment_sql(equipment)
     sql = "select * from Room r JOIN Equipment e ON r.id = e.room_id WHERE r.id NOT IN "\
     "(select room_id from (select * from Room ro JOIN Reservation re ON ro.id = re.room_id) " \
     "WHERE date_begin >= ? AND date_end <= ?) "\
-    "AND r.capacity >= ?" + equipment_sql
+    "AND r.capacity >= ? AND r.name like ? " + equipment_sql
     if room_type != 0:
         type_sql = ' AND r.type = ' + str(room_type)
         sql += type_sql   
+    cursor.execute(sql, (begin, end, capacity,location,))
+    return cursor.fetchall()
+
+def select_all_available_capacityexceeded(location, capacity, begin, end, equipment, room_type):
+    connexion = Database.get_connection()
+    cursor = connexion.cursor()
+    equipment_sql = build_equipment_sql(equipment)
+    sql = "select * from Room r JOIN Equipment e ON r.id = e.room_id WHERE r.id NOT IN "\
+    "(select room_id from (select * from Room ro JOIN Reservation re ON ro.id = re.room_id) " \
+    "WHERE date_begin >= ? AND date_end <= ?) "\
+    "AND r.capacity < ?" + equipment_sql
+    if room_type != 0:
+        type_sql = ' AND r.type = ' + str(room_type)
+        sql += type_sql  
+
+    sql += " order by r.capacity desc LIMIT 1 "
+
     cursor.execute(sql, (begin, end, capacity,))
     return cursor.fetchall()
 
@@ -126,25 +142,114 @@ def room_to_list_of_dict(rooms):
 
 def to_dict(row):
     return {"id": row[0], "name": row[1], "type": row[2],
-            "capacity": row[3], "description": row[4],
+            "capacity": row[3], "description": row[4], "city": row[5], "postalCode": row[6],
             "equipment": {"computer": row[8],"white_board": row[9],"sound_system": row[10],"projector": row[11]}}
 
-def select_usage(date):
+def select_usage(startDate, endDate):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
-    cursor.execute('SELECT 0.5 as computer, 1 as white_board, 0.2 as sound_system, 0.6 as projector')
 
-    usage = cursor.fetchone()
-    if usage is None:
+    cursor.execute("Select sum(computer) computer, sum(white_board) white_board, sum(sound_system) sound_system, sum(projector) projector "\
+                    "from Room r "\
+                    "inner join equipment e on r.equipment_id = e.id")
+
+    usageTotal = cursor.fetchone()
+    if usageTotal is None:
         return None
-    else:
-        return usage
 
-def usage_to_dict(row):
-    return {"computer": row[0], "white_board": row[1],
-            "sound_system": row[2], "projector": row[3]}
+    cursor.execute("Select sum(computer) computer, sum(white_board) white_board, sum(sound_system) sound_system, sum(projector) projector "\
+                    "from Room r "\
+                    "inner join equipment e on r.equipment_id = e.id "\
+                    "Inner join Reservation rsv on  rsv.room_id = r.id "\
+                    "WHERE date_begin >= ? AND date_end <= ? ", (startDate, endDate,) )
+
+    usageReserve = cursor.fetchone()
+    if usageReserve is None:
+        return None
+
+    return [usageTotal, usageReserve]
+
+def usage_to_dict(usageArray):
+    print(usageArray)
+
+    usageTotal = usageArray[0]
+    usageReserve = usageArray[1]
+
+    computer = usageTotal[0]
+    if usageReserve[0] is None:
+        computer = 0
+    elif computer != 0:
+        computer = usageReserve[0] / computer
+
+    white_board = usageTotal[1]
+    if usageReserve[1] is None:
+        white_board = 0
+    elif white_board != 0:
+        white_board = usageReserve[1] / white_board
+
+    sound_system = usageTotal[2]
+    if usageReserve[2] is None:
+        sound_system = 0
+    elif sound_system != 0:
+        sound_system = usageReserve[2] / sound_system
+
+    projector = usageTotal[3]
+    if usageReserve[3] is None:
+        projector = 0
+    elif projector != 0:
+        projector = usageReserve[3] / projector
+
+    return {"computer": computer, "white_board": white_board,
+            "sound_system": sound_system, "projector": projector}
 
 
+def get_province_postal_code(postalCode):
+
+    if postalCode is None:
+        return None
+
+    if postalCode == "":
+        return None
+    
+    firstLetter = postalCode[0].upper()
+
+    if firstLetter == "T":
+        return "AB"
+
+    if firstLetter == "V":
+        return "CB"
+
+    if firstLetter == "R":
+        return "MB"
+
+    if firstLetter == "E":
+        return "NB"
+
+    if firstLetter == "A":
+        return "NL"
+        
+    if firstLetter == "B":
+        return "NS"
+
+    if firstLetter == "X":
+        return "NT"
+
+    if firstLetter == "K" or firstLetter == "L" or firstLetter == "M" or firstLetter == "N" or firstLetter == "P":
+        return "ON"
+
+    if firstLetter == "G" or firstLetter == "H" or firstLetter == "J":
+        return "QC"
+
+    if firstLetter == "S":
+        return "SK"
+
+    if firstLetter == "Y":
+        return "YT"
+
+    if firstLetter == "C":
+        return "PE"
+
+    return None
 
 # to test uncomment and  => cd backend/src/room_controler && python3 room_controler.py
 # def print_res(data):
