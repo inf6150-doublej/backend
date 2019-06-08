@@ -203,6 +203,53 @@ def usage_to_dict(usageArray):
             "sound_system": sound_system, "projector": projector}
 
 
+def get_province_postal_code(postalCode):
+
+    if postalCode is None:
+        return None
+
+    if postalCode == "":
+        return None
+    
+    firstLetter = postalCode[0].upper()
+
+    if firstLetter == "T":
+        return "AB"
+
+    if firstLetter == "V":
+        return "CB"
+
+    if firstLetter == "R":
+        return "MB"
+
+    if firstLetter == "E":
+        return "NB"
+
+    if firstLetter == "A":
+        return "NL"
+        
+    if firstLetter == "B":
+        return "NS"
+
+    if firstLetter == "X":
+        return "NT"
+
+    if firstLetter == "K" or firstLetter == "L" or firstLetter == "M" or firstLetter == "N" or firstLetter == "P":
+        return "ON"
+
+    if firstLetter == "G" or firstLetter == "H" or firstLetter == "J":
+        return "QC"
+
+    if firstLetter == "S":
+        return "SK"
+
+    if firstLetter == "Y":
+        return "YT"
+
+    if firstLetter == "C":
+        return "PE"
+
+    return None
 
 # to test uncomment and  => cd backend/src/room_controler && python3 room_controler.py
 # def print_res(data):
