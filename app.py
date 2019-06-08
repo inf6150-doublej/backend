@@ -440,8 +440,8 @@ def create_room():
     capacity = request.json['room']['capacity']
     description = request.json['room']['description']
     equipment = request.json['room']['equipment']
-    city = room['city']
-    postal_code = request.json['room']['postal_code']
+    city = request.json['room']['city']
+    postal_code = request.json['room']['postalCode']
     new_id = room_controller.create(name, type, capacity, description, equipment, city, postal_code)
     return jsonify({'id': new_id}), 201
 
@@ -472,7 +472,7 @@ def update_room_by_id(room_id):
         description = room['description']
         equipment = room['equipment']
         city = room['city']
-        postal_code = room['postal_code']
+        postal_code = room['postalCode']
         room_controller.update(id, name, type, capacity, description, equipment, city, postal_code)
         return jsonify({'room': room}), 201
 
