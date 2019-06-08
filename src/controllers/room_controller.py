@@ -129,20 +129,62 @@ def to_dict(row):
             "capacity": row[3], "description": row[4],
             "equipment": {"computer": row[8],"white_board": row[9],"sound_system": row[10],"projector": row[11]}}
 
-def select_usage(date):
+def select_usage(startDate, endDate):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
-    cursor.execute('SELECT 0.5 as computer, 1 as white_board, 0.2 as sound_system, 0.6 as projector')
 
-    usage = cursor.fetchone()
-    if usage is None:
+    cursor.execute("Select sum(computer) computer, sum(white_board) white_board, sum(sound_system) sound_system, sum(projector) projector "\
+                    "from Room r "\
+                    "inner join equipment e on r.equipment_id = e.id")
+
+    usageTotal = cursor.fetchone()
+    if usageTotal is None:
         return None
-    else:
-        return usage
 
-def usage_to_dict(row):
-    return {"computer": row[0], "white_board": row[1],
-            "sound_system": row[2], "projector": row[3]}
+    cursor.execute("Select sum(computer) computer, sum(white_board) white_board, sum(sound_system) sound_system, sum(projector) projector "\
+                    "from Room r "\
+                    "inner join equipment e on r.equipment_id = e.id "\
+                    "Inner join Reservation rsv on  rsv.room_id = r.id "\
+                    "WHERE date_begin >= ? AND date_end <= ? ", (startDate, endDate,) )
+
+    usageReserve = cursor.fetchone()
+    if usageReserve is None:
+        return None
+
+    return [usageTotal, usageReserve]
+
+def usage_to_dict(usageArray):
+    print(usageArray)
+
+    usageTotal = usageArray[0]
+    usageReserve = usageArray[1]
+
+    computer = usageTotal[0]
+    if usageReserve[0] is None:
+        computer = 0
+    elif computer != 0:
+        computer = usageReserve[0] / computer
+
+    white_board = usageTotal[1]
+    if usageReserve[1] is None:
+        white_board = 0
+    elif white_board != 0:
+        white_board = usageReserve[1] / white_board
+
+    sound_system = usageTotal[2]
+    if usageReserve[2] is None:
+        sound_system = 0
+    elif sound_system != 0:
+        sound_system = usageReserve[2] / sound_system
+
+    projector = usageTotal[3]
+    if usageReserve[3] is None:
+        projector = 0
+    elif projector != 0:
+        projector = usageReserve[3] / projector
+
+    return {"computer": computer, "white_board": white_board,
+            "sound_system": sound_system, "projector": projector}
 
 
 

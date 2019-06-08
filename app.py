@@ -2,6 +2,7 @@
 import os, sys, sqlite3, hashlib, uuid, io, datetime, random, math
 sys.path.append(os.path.dirname(__file__))
 from datetime import datetime
+from datetime import timedelta  
 from sqlite3 import IntegrityError, Error
 from apscheduler.schedulers.background import BackgroundScheduler
 from db.database import Database
@@ -473,7 +474,7 @@ def send_email(recipient, subject, message):
 def get_rooms_usage(selected_date):
     
     selected_date = datetime.strptime(selected_date, "%Y-%m-%d").date()
-    stats = room_controller.usage_to_dict(room_controller.select_usage(selected_date))   
+    stats = room_controller.usage_to_dict(room_controller.select_usage(selected_date, selected_date + timedelta(days=1) ))   
     return jsonify({'stats': stats}), 200
 
 
