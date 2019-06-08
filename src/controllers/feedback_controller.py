@@ -3,7 +3,7 @@ sys.path.append(os.path.abspath(os.path.join('..', '..', '..', 'backend')))
 from db.database import Database
 
 # Create new feedback
-def create():
+def create(email, name, comment):
     connection = Database.get_connection()
     connection.execute((
         "INSERT INTO Feedback(email, name, publicationDate, comment)"
