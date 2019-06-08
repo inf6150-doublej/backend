@@ -129,6 +129,21 @@ def to_dict(row):
             "capacity": row[3], "description": row[4],
             "equipment": {"computer": row[8],"white_board": row[9],"sound_system": row[10],"projector": row[11]}}
 
+def select_usage(date):
+    connexion = Database.get_connection()
+    cursor = connexion.cursor()
+    cursor.execute('SELECT 0.5 as computer, 1 as white_board, 0.2 as sound_system, 0.6 as projector')
+
+    usage = cursor.fetchone()
+    if usage is None:
+        return None
+    else:
+        return usage
+
+def usage_to_dict(row):
+    return {"computer": row[0], "white_board": row[1],
+            "sound_system": row[2], "projector": row[3]}
+
 
 
 # to test uncomment and  => cd backend/src/room_controler && python3 room_controler.py

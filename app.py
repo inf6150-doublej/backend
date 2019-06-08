@@ -467,6 +467,12 @@ def send_email(recipient, subject, message):
     msg.body = message
     mail.send(msg)
 
+# Get rooms usage stats
+@app.route('/admin/rooms/usage/<selected_date>', methods=['GET'])
+def get_rooms_usage(selected_date):
+    stats = room_controller.usage_to_dict(room_controller.select_usage(selected_date))   
+    return jsonify(stats), 200
+
 
 #############################
 # ERROR HANDLER
