@@ -56,6 +56,6 @@ create table Feedback (
     name varchar(64),
     publicationDate Date,
     comment varchar(1000)
-)
+);
 
 PRAGMA foreign_keys=on;
