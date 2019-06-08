@@ -1,3 +1,5 @@
+import os, sys
+sys.path.append(os.path.abspath(os.path.join('..', '..', '..', 'backend')))
 from db.database import Database
 from sqlite3 import Error
 
