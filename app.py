@@ -11,7 +11,7 @@ from smtplib import SMTPException
 from flask import g, Flask, jsonify, session, request
 from flask_mail import Mail, Message
 from flask_cors import CORS
-from src.controllers import room_controller, user_controller, session_controller, reservation_controller
+from src.controllers import room_controller, user_controller, session_controller, reservation_controller, feedback_controller
 from src.constants.constants import *
 from flask import abort
 
