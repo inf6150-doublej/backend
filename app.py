@@ -323,8 +323,8 @@ def search_rooms():
         return jsonify({'error': ERR_BLANK}), 204
     begin = begin[:24]
     end = end[:24]
-    begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
-    end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
+    begin = datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
+    end = datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
     rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available(capacity, begin, end, equipment, room_type))
     return jsonify({'rooms': rooms}), 200
 
@@ -340,8 +340,8 @@ def reservation():
         return jsonify({'error': 'Missing User in form'}), 400
     begin = begin[:24]
     end = end[:24]
-    begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
-    end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
+    begin = datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
+    end = datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
     user_id = int(user['id'])
     room_id = int(room['id'])
     try:
@@ -372,8 +372,8 @@ def admin_manage_reservation(id):
         end = data['end']
         begin = begin[:24]
         end = end[:24]
-        begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
-        end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
+        begin = datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
+        end = datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
         user_id = int(user['id'])
         room_id = int(room[0])
         if request_data_is_invalid(user=user_id, room=room_id, id=id):
@@ -391,8 +391,8 @@ def admin_create_reservation():
     end = data['end']
     begin = begin[:24]
     end = end[:24]
-    begin = datetime.datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
-    end = datetime.datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
+    begin = datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
+    end = datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
     user_id = int(user['id'])
     room_id = int(room[0])
     reservation_controller.save(user_id, room_id, begin, end)
@@ -463,7 +463,7 @@ def get_room_by_id(room_id):
 
 # Send an e-mail
 def send_email(recipient, subject, message):
-    date = datetime.datetime.now().strftime('%Y-%m-%d')
+    date = datetime.now().strftime('%Y-%m-%d')
     msg = Message(subject, recipients=[recipient])
     msg.body = message
     mail.send(msg)
