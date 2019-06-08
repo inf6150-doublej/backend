@@ -14,7 +14,8 @@ from flask_cors import CORS
 from src.controllers import room_controller, user_controller, session_controller, reservation_controller, feedback_controller
 from src.constants.constants import *
 from flask import abort
-
+from urllib.request import Request, urlopen
+from xml.dom import minidom
 
 app = Flask(__name__)
 scheduler = BackgroundScheduler()
@@ -330,12 +331,13 @@ def feedback():
 # Search a room
 @app.route('/search', methods=['POST'])
 def search_rooms():
-    data = request.json['data']    
+    data = request.json['data']  
     print((str)(data))
     begin = data['begin']
     end = data['end']
     capacity = data['capacity']
     equipment = data['equipment']
+    postal_code = data['postalCode']
     location = data['location'] if data['location'] != 'everywhere' else ''
     location = '%' + location + '%' 
     room_type = int(data['type'])
@@ -345,7 +347,23 @@ def search_rooms():
     end = end[:24]
     begin = datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
     end = datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
-    rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available(location,capacity, begin, end, equipment, room_type))
+    # province = None
+    # if(len(postal_code)):
+    #     url= 'https://geocoder.ca/?locate=' + postal_code + '&geoit=XML'
+    #     print(url)
+    #     req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    #     xml = urlopen(req)
+    #     print(xml)
+    #     dom = minidom.parse(xml)
+    #     print(dom)
+    #     # geodata = dom.getElementsByTagName("geodata")
+    #     provNode = dom.getElementsByTagName("prov")
+    #     province = provNode[0].firstChild.nodeValue
+    #     # print(geodata)
+    #     print(province)
+    
+    province = room_controller.get_province_postal_code(postal_code)
+    rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available(location, capacity, begin, end, equipment, room_type, province))
     nothingFound = False
 
     if len(rooms) == 0:
