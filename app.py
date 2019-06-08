@@ -308,6 +308,22 @@ def send_recovery_email(user_email):
     # return true even if email was not sent
     return True
 
+
+
+
+#############################
+# FEEDBACK
+@app.route('/feedback', methods=['POST'])
+def feedback():
+    feedback = request.json['feedback']
+    email = feedback['email']
+    name = feedback['name']
+    comment = feedback['comment']
+    feedback_controller.create(email, name, comment)
+    return jsonify({'feedback': feedback}), 201
+
+
+
 #############################
 # SEARCH AND RESERVATION
 

@@ -50,4 +50,12 @@ create table Equipment (
   FOREIGN KEY (room_id) REFERENCES Room(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+create table Feedback {
+    id integer primary key;
+    email varchar(64),
+    name varchar(64),
+    publicationDate Date,
+    comment varchar(1000)
+}
+
 PRAGMA foreign_keys=on;
