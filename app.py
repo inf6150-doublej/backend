@@ -327,7 +327,13 @@ def search_rooms():
     begin = datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
     end = datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
     rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available(capacity, begin, end, equipment, room_type))
-    return jsonify({'rooms': rooms}), 200
+    nothingFound = False
+
+    if len(rooms) == 0:
+        rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available_capacityexceeded(capacity, begin, end, equipment, room_type))
+        nothingFound = True
+
+    return jsonify({'rooms': rooms, 'nothingFound': nothingFound}), 200
 
 # Make a reservation
 @app.route('/reservation', methods=['POST'])
