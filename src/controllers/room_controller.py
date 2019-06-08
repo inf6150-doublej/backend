@@ -12,29 +12,40 @@ def delete(id):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
     cursor.execute("DELETE FROM Room WHERE id=?", (id,))
+    cursor.execute("DELETE FROM Equipment WHERE room_id=?", (id,))
     connexion.commit()
 
 
-def update(id, name, type, capacity, description, equipment_id):
+def update(id, name, type, capacity, description, equipment):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
     sql_query = "UPDATE Room " \
-        "SET name=?, type=?, capacity=?, description=?, " \
-        "equipment_id=?" \
+        "SET name=?, type=?, capacity=?, description=? "\
         "WHERE id=?"
-    cursor.execute(sql_query, (name, type, capacity, description, equipment_id, id,))
+    cursor.execute(sql_query, (name, type, capacity, description, id,))
+    sql_query = "UPDATE Equipment " \
+        "SET computer=?, white_board=?, sound_system=?, " \
+        "projector=?" \
+        "WHERE room_id=?"
+    cursor.execute(sql_query,  (equipment["computer"], equipment["white_board"], equipment["sound_system"], equipment["projector"],id, ))
     connexion.commit()
     return cursor.fetchone()
 
 
-def create(name, type, capacity, description, equipment_id):
+def create(name, type, capacity, description, equipment):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
     cursor.execute(
         "INSERT INTO Room(name, type, capacity, "
-        "description,equipment_id) "
+        "description) "
+        "VALUES(?, ?, ?, ?)",
+        (name, type, capacity, description,))
+    room_id = cursor.lastrowid
+    cursor.execute(
+        "INSERT INTO Equipment(room_id, computer, white_board, "
+        "sound_system,projector) "
         "VALUES(?, ?, ?, ?, ?)",
-        (name, type, capacity, description, equipment_id,))
+        (room_id, equipment["computer"], equipment["white_board"], equipment["sound_system"], equipment["projector"],))
     connexion.commit()
     return cursor.lastrowid
 
@@ -42,7 +53,7 @@ def create(name, type, capacity, description, equipment_id):
 def select_by_id(id):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
-    sql = "SELECT * FROM Room s WHERE s.id == ? "
+    sql = "SELECT * FROM Room r JOIN Equipment e on r.id =?"
     cursor.execute((sql), (id,))
     return cursor.fetchone()
 
@@ -50,7 +61,7 @@ def select_by_id(id):
 def select_by_type(type):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
-    sql = "SELECT * FROM Room r WHERE r.type == ? "
+    sql = "SELECT * FROM Room r WHERE r.type =? "
     cursor.execute((sql), (type,))
     return cursor.fetchall()
 
@@ -58,7 +69,7 @@ def select_by_type(type):
 def select_all():
     connexion = Database.get_connection()
     cursor = connexion.cursor()
-    cursor.execute('SELECT * FROM Room')
+    cursor.execute('SELECT * FROM Room r JOIN Equipment e on r.id = e.room_id')
     return cursor.fetchall()
 
 
@@ -94,14 +105,14 @@ def build_equipment_sql(equipment):
 def select_by_name(name):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
-    cursor.execute("SELECT * FROM Room WHERE name==?", (name,))
+    cursor.execute("SELECT * FROM Room r JOIN Equipment e on r.id = e.room_id WHERE r.name==?", (name,))
     return cursor.fetchone()
 
 
 def select_by_reservation_id(reservation_id):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
-    cursor.execute("SELECT * FROM Room WHERE reservation_id = ?",
+    cursor.execute("SELECT * FROM Room r JOIN Equipment e on r.id = e.room_id WHERE r.reservation_id = ?",
                    (reservation_id,))
     return cursor.fetchall()
 
@@ -116,7 +127,22 @@ def room_to_list_of_dict(rooms):
 def to_dict(row):
     return {"id": row[0], "name": row[1], "type": row[2],
             "capacity": row[3], "description": row[4],
-            "equipment_id": row[5]}
+            "equipment": {"computer": row[8],"white_board": row[9],"sound_system": row[10],"projector": row[11]}}
+
+def select_usage(date):
+    connexion = Database.get_connection()
+    cursor = connexion.cursor()
+    cursor.execute('SELECT 0.5 as computer, 1 as white_board, 0.2 as sound_system, 0.6 as projector')
+
+    usage = cursor.fetchone()
+    if usage is None:
+        return None
+    else:
+        return usage
+
+def usage_to_dict(row):
+    return {"computer": row[0], "white_board": row[1],
+            "sound_system": row[2], "projector": row[3]}
 
 
 
