@@ -16,13 +16,13 @@ def delete(id):
     connexion.commit()
 
 
-def update(id, name, type, capacity, description, equipment):
+def update(id, name, type, capacity, description, equipment, city, postal_code):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
     sql_query = "UPDATE Room " \
-        "SET name=?, type=?, capacity=?, description=? "\
+        "SET name=?, type=?, capacity=?, description=?, city=?, postalCode=? "\
         "WHERE id=?"
-    cursor.execute(sql_query, (name, type, capacity, description, id,))
+    cursor.execute(sql_query, (name, type, capacity, description, city, postal_code, id,))
     sql_query = "UPDATE Equipment " \
         "SET computer=?, white_board=?, sound_system=?, " \
         "projector=?" \
@@ -32,14 +32,13 @@ def update(id, name, type, capacity, description, equipment):
     return cursor.fetchone()
 
 
-def create(name, type, capacity, description, equipment):
+def create(name, type, capacity, description, equipment, city, postal_code):
     connexion = Database.get_connection()
     cursor = connexion.cursor()
     cursor.execute(
-        "INSERT INTO Room(name, type, capacity, "
-        "description) "
-        "VALUES(?, ?, ?, ?)",
-        (name, type, capacity, description,))
+        "INSERT INTO Room(name, type, capacity, description, city, postalCode) "
+        "VALUES(?, ?, ?, ?, ?, ?)",
+        (name, type, capacity, description, city, postal_code))
     room_id = cursor.lastrowid
     cursor.execute(
         "INSERT INTO Equipment(room_id, computer, white_board, "
@@ -143,7 +142,7 @@ def room_to_list_of_dict(rooms):
 
 def to_dict(row):
     return {"id": row[0], "name": row[1], "type": row[2],
-            "capacity": row[3], "description": row[4],
+            "capacity": row[3], "description": row[4], "city": row[5], "postalCode": row[6],
             "equipment": {"computer": row[8],"white_board": row[9],"sound_system": row[10],"projector": row[11]}}
 
 def select_usage(startDate, endDate):
