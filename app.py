@@ -481,6 +481,16 @@ def get_room_by_id(room_id):
     else:
         return jsonify({'rooms': rooms}), 200
 
+# Get province for postal
+@app.route('/admin/rooms/postalCode/<postalCode>', methods=['GET'])
+def get_province_postal_code(postalCode):
+    province = room_controller.get_province_postal_code(postalCode)
+
+    if province is None:
+        return jsonify({'error': 'failed to get this province from postal code'}), 404
+    else:
+        return jsonify({'province': province}), 200
+
 # Send an e-mail
 def send_email(recipient, subject, message):
     date = datetime.now().strftime('%Y-%m-%d')
