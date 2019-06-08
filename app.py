@@ -314,11 +314,14 @@ def send_recovery_email(user_email):
 # Search a room
 @app.route('/search', methods=['POST'])
 def search_rooms():
-    data = request.json['data']
+    data = request.json['data']    
+    print((str)(data))
     begin = data['begin']
     end = data['end']
     capacity = data['capacity']
     equipment = data['equipment']
+    location = data['location'] if data['location'] != 'everywhere' else ''
+    location = '%' + location + '%' 
     room_type = int(data['type'])
     if request_data_is_invalid(query=data):
         return jsonify({'error': ERR_BLANK}), 204
@@ -326,11 +329,11 @@ def search_rooms():
     end = end[:24]
     begin = datetime.strptime(begin, "%a %b %d %Y %H:%M:%S")
     end = datetime.strptime(end, "%a %b %d %Y %H:%M:%S")
-    rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available(capacity, begin, end, equipment, room_type))
+    rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available(location,capacity, begin, end, equipment, room_type))
     nothingFound = False
 
     if len(rooms) == 0:
-        rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available_capacityexceeded(capacity, begin, end, equipment, room_type))
+        rooms = room_controller.room_to_list_of_dict(room_controller.select_all_available_capacityexceeded(location,capacity, begin, end, equipment, room_type))
         nothingFound = True
 
     return jsonify({'rooms': rooms, 'nothingFound': nothingFound}), 200

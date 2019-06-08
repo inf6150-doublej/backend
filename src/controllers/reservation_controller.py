@@ -33,7 +33,7 @@ def delete(id):
 def select_all():
     connection = Database.get_connection()
     cursor = connection.cursor()
-    cursor.execute('SELECT * FROM Reservation')
+    cursor.execute('SELECT re.id, re.user_id, re.room_id, re.date_begin, re.date_end, ro.name, u.name, u.family_name FROM Reservation re JOIN User u on u.id = re.user_id JOIN Room ro on ro.id = re.room_id' )
     reservations = to_list_of_dict(cursor.fetchall())
     return reservations
 
@@ -53,4 +53,4 @@ def to_list_of_dict(reservations):
 
 def to_dict(row):
     return {"id": row[0], "user_id": row[1], "room_id": row[2],
-            "date_begin": row[3], "date_end": row[4]}
+            "date_begin": row[3], "date_end": row[4], "room_name": row[5], "user_name": row[6], "user_family_name": row[7],}
